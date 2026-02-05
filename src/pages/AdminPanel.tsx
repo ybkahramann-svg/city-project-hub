@@ -59,20 +59,16 @@ export const AdminPanel = () => {
   const onSubmit = async (data: ProjectFormData) => {
     setIsSubmitting(true);
     try {
-      const { error } = await externalDb.from('projects').insert([
-        {
-          title: data.title,
-          description: data.description,
-          category: data.category,
-          status: data.status,
-          budget: Number(data.budget),
-          progress: Number(data.progress),
-          image_url: data.image_url || null,
-          created_at: new Date().toISOString(),
-        },
-      ]);
-
-      if (error) throw error;
+      await externalDb.addProject({
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        status: data.status,
+        budget: Number(data.budget),
+        progress: Number(data.progress),
+        image_url: data.image_url || '',
+        created_at: new Date().toISOString(),
+      });
 
       toast.success('Project added successfully!');
       reset();
