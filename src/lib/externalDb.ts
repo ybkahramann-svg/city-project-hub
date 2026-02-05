@@ -1,12 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-
-const EXTERNAL_SUPABASE_URL = import.meta.env.VITE_EXTERNAL_SUPABASE_URL;
-const EXTERNAL_SUPABASE_ANON_KEY = import.meta.env.VITE_EXTERNAL_SUPABASE_ANON_KEY;
-
-export const externalDb = createClient(
-  EXTERNAL_SUPABASE_URL,
-  EXTERNAL_SUPABASE_ANON_KEY
-);
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Project {
   id: string;
@@ -19,3 +11,29 @@ export interface Project {
   image_url: string;
   created_at: string;
 }
+
+export const externalDb = {
+  async getProjects(): Promise<Project[]> {
+    const { data, error } = await supabase.functions.invoke('external-projects', {
+      body: { action: 'getProjects' },
+    });
+
+    if (error) throw error;
+    return data as Project[];
+  },
+
+  async addProject(project: Omit<Project, 'id'>): Promise<Project> {
+    const { data, error } = await supabase.functions.invoke('external-projects', {
+      body: { 
+        action: 'addProject',
+        project: {
+          ...project,
+          created_at: new Date().toISOString(),
+        },
+      },
+    });
+
+    if (error) throw error;
+    return data as Project;
+  },
+};
