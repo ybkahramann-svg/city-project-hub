@@ -29,8 +29,8 @@ Deno.serve(async (req) => {
 
     const externalDb = createClient(externalUrl, externalKey);
 
-    const url = new URL(req.url);
-    const action = url.searchParams.get("action");
+    const body = await req.json();
+    const action = body?.action;
 
     if (action === "getProjects") {
       const { data, error } = await externalDb
@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "addProject" && req.method === "POST") {
-      const project = await req.json();
+      const project = body?.project;
 
       const { data, error } = await externalDb
         .from("projects")
