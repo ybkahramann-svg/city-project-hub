@@ -5,13 +5,7 @@ export const useProjects = () => {
   return useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
-      const { data, error } = await externalDb
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return (data || []) as Project[];
+      return await externalDb.getProjects();
     },
   });
 };
