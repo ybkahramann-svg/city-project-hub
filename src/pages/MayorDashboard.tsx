@@ -6,6 +6,7 @@ import { ProjectHero } from '@/components/ProjectHero';
 import { ProjectCarousel } from '@/components/ProjectCarousel';
 import { CategoryView } from '@/components/CategoryView';
 import { DashboardFilters } from '@/components/DashboardFilters';
+import { ExecutiveSummary } from '@/components/ExecutiveSummary';
 import { useProjects } from '@/hooks/useProjects';
 
 type Tab = 'projects' | 'categories';
@@ -106,6 +107,7 @@ export const MayorDashboard = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-12 space-y-16">
+        <ExecutiveSummary projects={filtered} />
         {tab === 'projects' ? (
           <>
             {featured && (
