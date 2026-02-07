@@ -1,12 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { externalDb, Project } from '@/lib/externalDb';
+import { getProjects, Project } from '@/lib/externalDb';
 
 export const useProjects = () => {
   return useQuery({
     queryKey: ['projects'],
-    queryFn: async () => {
-      return await externalDb.getProjects();
-    },
+    queryFn: getProjects,
   });
 };
 
@@ -19,7 +17,7 @@ export const useProjectsByStatus = (status: string) => {
 export const useFeaturedProject = () => {
   const { data: projects = [], ...rest } = useProjects();
   const featured = projects.find(
-    (p) => p.status === 'In Progress' && p.progress > 0
+    (p) => p.status === 'In Progress' && p.progress && p.progress > 0
   ) || projects[0];
   return { data: featured, ...rest };
 };

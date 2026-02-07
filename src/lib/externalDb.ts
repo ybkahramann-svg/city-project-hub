@@ -1,41 +1,52 @@
-import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+
+// --- CONFIGURATION ---
+const SUPABASE_URL = "https://vduwcjfddwcrtpvkihxp.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkdXdjamZkZHdjcnRwdmtpaHhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyMDcwNDMsImV4cCI6MjA4NTc4MzA0M30.l0DqagpLy3xEcZsXh79jCJSJVXcUUXftGg-Ernp-kI0";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export interface Project {
   id: string;
   title: string;
-  description: string;
-  category: string;
+  description?: string;
+  category?: string;
   status: 'In Progress' | 'Completed' | 'Planned';
-  budget: number;
-  progress: number;
-  image_url: string;
-  district: string;
-  neighborhood: string;
-  created_at: string;
+  budget?: number;
+  progress?: number;
+  image_url?: string;
+  district?: string;
+  neighborhood?: string;
+  created_at?: string;
 }
 
-export const externalDb = {
-  async getProjects(): Promise<Project[]> {
-    const { data, error } = await supabase.functions.invoke('external-projects', {
-      body: { action: 'getProjects' },
-    });
+// 1. GET PROJECTS
+export const getProjects = async (): Promise<Project[]> => {
+  console.log("Fetching projects directly...");
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data as Project[];
-  },
+  if (error) {
+    console.error("Error fetching:", error);
+    throw error;
+  }
+  return data || [];
+};
 
-  async addProject(project: Omit<Project, 'id'>): Promise<Project> {
-    const { data, error } = await supabase.functions.invoke('external-projects', {
-      body: { 
-        action: 'addProject',
-        project: {
-          ...project,
-          created_at: new Date().toISOString(),
-        },
-      },
-    });
+// 2. ADD PROJECT
+export const addProject = async (project: Omit<Project, 'id'>): Promise<Project> => {
+  console.log("Adding project:", project);
+  const { data, error } = await supabase
+    .from('projects')
+    .insert([project])
+    .select()
+    .single();
 
-    if (error) throw error;
-    return data as Project;
-  },
+  if (error) {
+    console.error("Error adding:", error);
+    throw error;
+  }
+  return data;
 };
