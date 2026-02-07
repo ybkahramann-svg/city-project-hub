@@ -33,6 +33,8 @@ const projectSchema = z.object({
     return !isNaN(num) && num >= 0 && num <= 100;
   }, 'Progress must be between 0 and 100'),
   image_url: z.string().url('Please enter a valid image URL').optional().or(z.literal('')),
+  district: z.string().optional().or(z.literal('')),
+  neighborhood: z.string().optional().or(z.literal('')),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -67,6 +69,8 @@ export const AdminPanel = () => {
         budget: Number(data.budget),
         progress: Number(data.progress),
         image_url: data.image_url || '',
+        district: data.district || '',
+        neighborhood: data.neighborhood || '',
         created_at: new Date().toISOString(),
       });
 
@@ -235,6 +239,28 @@ export const AdminPanel = () => {
               {errors.image_url && (
                 <p className="text-destructive text-sm">{errors.image_url.message}</p>
               )}
+            </div>
+
+            {/* District & Neighborhood */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="district" className="text-foreground">District</Label>
+                <Input
+                  id="district"
+                  {...register('district')}
+                  placeholder="e.g., Central District"
+                  className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-accent"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="neighborhood" className="text-foreground">Neighborhood</Label>
+                <Input
+                  id="neighborhood"
+                  {...register('neighborhood')}
+                  placeholder="e.g., Riverside"
+                  className="bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-accent"
+                />
+              </div>
             </div>
 
             {/* Submit Button */}
