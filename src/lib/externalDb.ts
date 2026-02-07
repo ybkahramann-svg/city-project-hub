@@ -9,6 +9,8 @@ export interface Project {
   budget: number;
   progress: number;
   image_url: string;
+  district: string;
+  neighborhood: string;
   created_at: string;
 }
 
