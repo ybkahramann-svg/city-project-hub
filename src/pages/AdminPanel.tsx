@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import { LogOut, Plus } from 'lucide-react';
-import { externalDb } from '@/lib/externalDb';
+import { addProject } from '@/lib/externalDb';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -61,7 +61,7 @@ export const AdminPanel = () => {
   const onSubmit = async (data: ProjectFormData) => {
     setIsSubmitting(true);
     try {
-      await externalDb.addProject({
+      await addProject({
         title: data.title,
         description: data.description,
         category: data.category,
