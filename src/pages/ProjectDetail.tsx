@@ -17,6 +17,14 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  Phone,
+  Building2,
+  User,
+  CalendarDays,
+  Hourglass,
+  Users,
+  ShieldCheck,
+  MessageSquare,
 } from 'lucide-react';
 
 type Tab = 'overview' | 'map' | 'monitor' | 'notes';
@@ -26,6 +34,12 @@ const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: 'map', label: 'Location Map', icon: Map },
   { id: 'monitor', label: 'Site Monitor', icon: Camera },
   { id: 'notes', label: "Mayor's Notes", icon: FileText },
+];
+
+const mockNotes = [
+  { date: '05.03.2024', text: 'Renk seçimi onaylandı. Dış cephe için RAL 7016 tonu kullanılacak.', author: 'Başkan' },
+  { date: '12.02.2024', text: 'Zemin etüdü hızlandırılsın. Jeoloji raporunu bu hafta bekliyorum.', author: 'Başkan' },
+  { date: '20.01.2024', text: 'Proje başlangıç toplantısı yapıldı. Tüm birimler bilgilendirildi.', author: 'Başkan' },
 ];
 
 const ProjectDetail = () => {
@@ -90,7 +104,6 @@ const ProjectDetail = () => {
         {/* Hero Section */}
         <div className="max-w-7xl mx-auto w-full px-6 pt-8 pb-4">
           <div className="grid lg:grid-cols-[1fr_1.4fr] gap-8 items-center">
-            {/* Image */}
             <div className="rounded-2xl overflow-hidden border border-border/30 bg-secondary/20 aspect-[4/3]">
               {project.image_url ? (
                 <img src={project.image_url} alt={project.title} className="w-full h-full object-cover" />
@@ -100,7 +113,6 @@ const ProjectDetail = () => {
                 </div>
               )}
             </div>
-            {/* Title Block */}
             <div className="space-y-3">
               <Badge className="bg-accent/20 text-accent border-accent/30">{project.category}</Badge>
               <h1 className="text-3xl lg:text-4xl font-bold text-foreground leading-tight">{project.title}</h1>
@@ -110,6 +122,69 @@ const ProjectDetail = () => {
                   <span>{[project.district, project.neighborhood].filter(Boolean).join(' / ')}</span>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Command Center Strip: Responsibility + Timeline + Impact */}
+        <div className="max-w-7xl mx-auto w-full px-6 py-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Responsibility Card */}
+            <div className="rounded-xl border border-border/30 bg-secondary/30 backdrop-blur-xl p-4 space-y-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Sorumlu Birim</p>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                  <Building2 className="w-4 h-4 text-accent" />
+                </div>
+                <p className="text-sm font-semibold text-foreground leading-tight">Fen İşleri Daire Başkanlığı</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Ahmet Yılmaz</span>
+                </div>
+                <button className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center hover:bg-accent/20 transition-colors">
+                  <Phone className="w-3.5 h-3.5 text-accent" />
+                </button>
+              </div>
+            </div>
+
+            {/* Timeline Card */}
+            <div className="rounded-xl border border-border/30 bg-secondary/30 backdrop-blur-xl p-4 space-y-3">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Proje Takvimi</p>
+              <div className="flex items-center gap-6">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase">Başlangıç</p>
+                  <p className="text-sm font-semibold text-foreground">01.01.2025</p>
+                </div>
+                <div className="flex-1 h-px bg-gradient-to-r from-accent/50 to-accent/10 relative">
+                  <div className="absolute -top-1 left-0 w-2 h-2 rounded-full bg-accent" />
+                  <div className="absolute -top-1 right-0 w-2 h-2 rounded-full bg-border" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase">Hedef Bitiş</p>
+                  <p className="text-sm font-semibold text-foreground">30.12.2026</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Hourglass className="w-3.5 h-3.5 text-accent" />
+                <Badge className="bg-accent/15 text-accent border-accent/20 text-xs font-bold">145 Gün Kaldı</Badge>
+              </div>
+            </div>
+
+            {/* Impact Card */}
+            <div className="sm:col-span-2 lg:col-span-1 rounded-xl border border-accent/30 bg-gradient-to-br from-accent/10 via-secondary/30 to-accent/5 backdrop-blur-xl p-4 space-y-2 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent/70">Sosyal Etki</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-accent">5.000</p>
+                  <p className="text-xs text-muted-foreground">Günlük Hizmet Kapasitesi</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -178,9 +253,7 @@ const ProjectDetail = () => {
                     <Navigation className="w-4 h-4" /> Get Directions
                   </Button>
                 </div>
-                {/* Map Placeholder */}
                 <div className="rounded-xl border border-border/30 bg-background/60 h-[350px] flex items-center justify-center relative overflow-hidden">
-                  {/* Fake map grid */}
                   <div className="absolute inset-0 opacity-10">
                     {Array.from({ length: 12 }).map((_, i) => (
                       <div key={`h${i}`} className="absolute w-full border-t border-accent/30" style={{ top: `${(i + 1) * 8}%` }} />
@@ -189,7 +262,6 @@ const ProjectDetail = () => {
                       <div key={`v${i}`} className="absolute h-full border-l border-accent/30" style={{ left: `${(i + 1) * 8}%` }} />
                     ))}
                   </div>
-                  {/* Pin */}
                   <div className="flex flex-col items-center gap-2 z-10">
                     <div className="w-10 h-10 rounded-full bg-accent/20 border-2 border-accent flex items-center justify-center animate-pulse">
                       <MapPin className="w-5 h-5 text-accent" />
@@ -206,7 +278,6 @@ const ProjectDetail = () => {
             {activeTab === 'monitor' && (
               <div className="space-y-6">
                 <h3 className="text-xl font-bold text-foreground">Construction Snapshots</h3>
-                {/* Featured Photo */}
                 <div className="rounded-xl border border-border/30 bg-background/40 overflow-hidden aspect-video flex items-center justify-center">
                   {project.image_url ? (
                     <img src={project.image_url} alt="Latest site photo" className="w-full h-full object-cover" />
@@ -228,7 +299,6 @@ const ProjectDetail = () => {
                     </button>
                   </div>
                 </div>
-                {/* Timeline Strip */}
                 <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
                   {placeholderDates.map((date, i) => (
                     <button
@@ -249,27 +319,56 @@ const ProjectDetail = () => {
 
             {/* MAYOR'S NOTES */}
             {activeTab === 'notes' && (
-              <div className="space-y-6 max-w-2xl">
-                <div>
-                  <h3 className="text-xl font-bold text-foreground">Directives & Orders</h3>
-                  <p className="text-muted-foreground text-sm mt-1">Send instructions to department heads regarding this project.</p>
+              <div className="space-y-8">
+                {/* New Note Input */}
+                <div className="max-w-2xl space-y-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground">Direktif & Talimatlar</h3>
+                    <p className="text-muted-foreground text-sm mt-1">Daire başkanlarına proje hakkında talimat gönderin.</p>
+                  </div>
+                  <div className="rounded-xl border border-accent/20 bg-background/40 p-1">
+                    <Textarea
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                      placeholder="Talimatınızı buraya yazın..."
+                      className="min-h-[120px] bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder:text-muted-foreground/50 resize-none text-base"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-accent" /> Şifreli • Sadece yetkili personel görebilir
+                    </p>
+                    <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 px-6" disabled={!noteText.trim()}>
+                      <Send className="w-4 h-4" /> Emir Gönder
+                    </Button>
+                  </div>
                 </div>
-                <div className="rounded-xl border border-accent/20 bg-background/40 p-1">
-                  <Textarea
-                    value={noteText}
-                    onChange={(e) => setNoteText(e.target.value)}
-                    placeholder="Type your directive here..."
-                    className="min-h-[180px] bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder:text-muted-foreground/50 resize-none text-base"
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">🔒 Encrypted • Visible only to authorized personnel</p>
-                  <Button
-                    className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 px-6"
-                    disabled={!noteText.trim()}
-                  >
-                    <Send className="w-4 h-4" /> Send Order
-                  </Button>
+
+                {/* Historical Log */}
+                <div className="max-w-2xl space-y-4">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Geçmiş Kayıtlar</p>
+                  </div>
+                  <div className="relative pl-6 border-l-2 border-border/30 space-y-6">
+                    {mockNotes.map((note, i) => (
+                      <div key={i} className="relative">
+                        {/* Dot on timeline */}
+                        <div className="absolute -left-[calc(1.5rem+5px)] w-2.5 h-2.5 rounded-full bg-accent/60 border-2 border-background" />
+                        <div className="rounded-xl border border-border/20 bg-background/30 backdrop-blur-sm p-4 space-y-2 hover:border-accent/20 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <Badge variant="outline" className="text-[10px] border-accent/20 text-accent font-mono">
+                              {note.date}
+                            </Badge>
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <MessageSquare className="w-3 h-3" /> {note.author}
+                            </span>
+                          </div>
+                          <p className="text-sm text-foreground/80 leading-relaxed">{note.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
