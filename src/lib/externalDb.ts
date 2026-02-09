@@ -50,3 +50,34 @@ export const addProject = async (project: Omit<Project, 'id'>): Promise<Project>
   }
   return data;
 };
+
+// 3. UPDATE PROJECT
+export const updateProject = async (id: string, updates: Partial<Omit<Project, 'id'>>): Promise<Project> => {
+  console.log("Updating project:", id, updates);
+  const { data, error } = await supabase
+    .from('projects')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating:", error);
+    throw error;
+  }
+  return data;
+};
+
+// 4. DELETE PROJECT
+export const deleteProject = async (id: string): Promise<void> => {
+  console.log("Deleting project:", id);
+  const { error } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error("Error deleting:", error);
+    throw error;
+  }
+};
