@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Project } from '@/lib/externalDb';
 import { ProjectCard } from './ProjectCard';
@@ -12,16 +12,47 @@ interface ProjectCarouselProps {
 
 export const ProjectCarousel = ({ projects, title, status }: ProjectCarouselProps) => {
   const scrollContainer = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragState = useRef({ startX: 0, scrollLeft: 0, hasMoved: false });
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainer.current) {
-      const scrollAmount = 300;
       scrollContainer.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        left: direction === 'left' ? -300 : 300,
         behavior: 'smooth',
       });
     }
   };
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!scrollContainer.current) return;
+    setIsDragging(true);
+    dragState.current = {
+      startX: e.pageX - scrollContainer.current.offsetLeft,
+      scrollLeft: scrollContainer.current.scrollLeft,
+      hasMoved: false,
+    };
+  }, []);
+
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainer.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainer.current.offsetLeft;
+    const walk = (x - dragState.current.startX) * 1.5;
+    if (Math.abs(walk) > 3) dragState.current.hasMoved = true;
+    scrollContainer.current.scrollLeft = dragState.current.scrollLeft - walk;
+  }, [isDragging]);
+
+  const onMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const onClickCapture = useCallback((e: React.MouseEvent) => {
+    if (dragState.current.hasMoved) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, []);
 
   if (projects.length === 0) return null;
 
@@ -52,11 +83,16 @@ export const ProjectCarousel = ({ projects, title, status }: ProjectCarouselProp
         </div>
       </div>
 
-      {/* Carousel */}
       <div
         ref={scrollContainer}
-        className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
-        style={{ scrollBehavior: 'smooth' }}
+        className={`flex gap-4 overflow-x-auto pb-4 scrollbar-hide select-none ${
+          isDragging ? 'cursor-grabbing' : 'cursor-grab'
+        }`}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+        onClickCapture={onClickCapture}
       >
         {projects.map((project) => (
           <ProjectCard key={project.id} project={project} />
