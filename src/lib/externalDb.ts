@@ -17,6 +17,11 @@ export interface Project {
   image_url?: string;
   district?: string;
   neighborhood?: string;
+  department?: string;
+  manager_name?: string;
+  start_date?: string;
+  end_date?: string;
+  impact_stat?: string;
   created_at?: string;
 }
 
