@@ -126,11 +126,11 @@ export const AdminPanel = () => {
         setValue('image_url', project.image_url || '');
         setValue('district', project.district || '');
         setValue('neighborhood', project.neighborhood || '');
-        setValue('department', '');
-        setValue('manager_name', '');
-        setValue('impact_stat', '');
-        setStartDate(undefined);
-        setEndDate(undefined);
+        setValue('department', project.department || '');
+        setValue('manager_name', project.manager_name || '');
+        setValue('impact_stat', project.impact_stat || '');
+        setStartDate(project.start_date ? new Date(project.start_date) : undefined);
+        setEndDate(project.end_date ? new Date(project.end_date) : undefined);
       }
     }
   }, [selectedId, projects, setValue]);
@@ -158,30 +158,36 @@ export const AdminPanel = () => {
   const onSubmit = async (data: ProjectFormData) => {
     setIsSubmitting(true);
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         title: data.title,
         description: data.description,
         category: data.category,
         status: data.status,
         budget: Number(data.budget),
         progress: Number(data.progress),
-        image_url: data.image_url || '',
-        district: data.district || '',
-        neighborhood: data.neighborhood || '',
+        image_url: data.image_url || null,
+        district: data.district || null,
+        neighborhood: data.neighborhood || null,
+        department: data.department || null,
+        manager_name: data.manager_name || null,
+        impact_stat: data.impact_stat || null,
+        start_date: startDate ? format(startDate, 'yyyy-MM-dd') : null,
+        end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null,
       };
 
       if (isEditMode && selectedId) {
-        await updateProject(selectedId, payload);
+        await updateProject(selectedId, payload as any);
         toast.success('Project updated successfully!');
       } else {
-        await addProject({ ...payload, created_at: new Date().toISOString() });
+        await addProject({ ...payload, created_at: new Date().toISOString() } as any);
         toast.success('Project created successfully!');
         handleCreateNew();
       }
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-    } catch (error) {
-      toast.error(isEditMode ? 'Failed to update project.' : 'Failed to create project.');
-      console.error(error);
+    } catch (error: any) {
+      const msg = error?.message || (isEditMode ? 'Failed to update project.' : 'Failed to create project.');
+      toast.error(msg);
+      console.error('Save error:', error);
     } finally {
       setIsSubmitting(false);
     }
