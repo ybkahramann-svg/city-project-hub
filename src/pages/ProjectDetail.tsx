@@ -7,25 +7,30 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   ArrowLeft,
   MapPin,
   LayoutDashboard,
   Map,
-  Camera,
   FileText,
   Navigation,
   Send,
-  Clock,
   DollarSign,
   Building2,
   User,
   CalendarDays,
-  Hourglass,
   Users,
   ShieldCheck,
   MessageSquare,
   ImageIcon,
   TrendingUp,
+  Phone,
+  Mail,
+  MessageCircle,
 } from 'lucide-react';
 import { format, differenceInDays, parseISO, differenceInCalendarDays } from 'date-fns';
 import { toast } from 'sonner';
@@ -201,86 +206,66 @@ const ProjectDetail = () => {
           </div>
         </header>
 
-        {/* ═══ CINEMATIC HERO ═══ */}
+        {/* ═══ CINEMATIC HERO with KPI overlay ═══ */}
         <section className="max-w-7xl mx-auto px-6 pt-10 pb-6">
-          <div className="grid lg:grid-cols-[1fr_1fr] gap-8 items-start">
-            {/* Hero Image */}
-            <div className="rounded-2xl overflow-hidden border border-border/20 aspect-video bg-secondary/30 relative group">
-              {project.image_url ? (
-                <img src={project.image_url} alt={project.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-accent/5 to-secondary/40 flex items-center justify-center">
-                  <span className="text-7xl opacity-30">🏗️</span>
-                </div>
-              )}
-              {/* Progress overlay */}
-              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent p-4">
-                <div className="flex items-center justify-between text-sm mb-1.5">
-                  <span className="text-muted-foreground font-medium">İlerleme</span>
-                  <span className="text-accent font-bold text-lg">{project.progress ?? 0}%</span>
-                </div>
-                <Progress value={project.progress ?? 0} className="h-2" />
+          {/* Hero Image with Title Overlay */}
+          <div className="relative rounded-2xl overflow-hidden border border-border/20 aspect-[21/9] bg-secondary/30 group">
+            {project.image_url ? (
+              <img src={project.image_url} alt={project.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-accent/5 to-secondary/40 flex items-center justify-center">
+                <span className="text-7xl opacity-30">🏗️</span>
               </div>
-            </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
-            {/* Title & Context */}
-            <div className="space-y-5 lg:pt-2">
-              {project.category && (
-                <Badge className="bg-accent/15 text-accent border-accent/20 text-xs tracking-wider uppercase">
-                  {project.category}
-                </Badge>
-              )}
-              <div className="space-y-2">
-                <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground leading-tight tracking-tight">
-                  {project.title}
-                </h1>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="w-4 h-4 text-accent flex-shrink-0" />
-                  <span className="text-sm">{[project.district, project.neighborhood].filter(Boolean).join(' • ') || 'Konum belirtilmemiş'}</span>
+            <div className="absolute bottom-0 inset-x-0 p-6 lg:p-8 space-y-2">
+              <div className="flex items-center gap-3 mb-1">
+                {project.category && (
+                  <Badge className="bg-accent/15 text-accent border-accent/20 text-xs tracking-wider uppercase backdrop-blur-sm">
+                    {project.category}
+                  </Badge>
+                )}
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/40 backdrop-blur-sm border border-border/20">
+                  <div className={`w-2 h-2 rounded-full ${statusPulseMap[project.status] || 'bg-muted-foreground'} animate-pulse`} style={{ boxShadow: project.status === 'In Progress' ? '0 0 8px hsl(var(--accent))' : undefined }} />
+                  <span className="text-[10px] font-semibold text-foreground tracking-wide">{project.status === 'In Progress' ? 'DEVAM EDİYOR' : project.status === 'Completed' ? 'TAMAMLANDI' : 'PLANLANMIŞ'}</span>
                 </div>
               </div>
-
-              {/* Live Status Indicator */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 border border-border/30">
-                  <div className={`w-2.5 h-2.5 rounded-full ${statusPulseMap[project.status] || 'bg-muted-foreground'} animate-pulse shadow-lg`} style={{ boxShadow: project.status === 'In Progress' ? '0 0 8px hsl(var(--accent))' : undefined }} />
-                  <span className="text-xs font-semibold text-foreground tracking-wide">{project.status === 'In Progress' ? 'DEVAM EDİYOR' : project.status === 'Completed' ? 'TAMAMLANDI' : 'PLANLANMIŞ'}</span>
-                </div>
+              <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground leading-tight tracking-tight drop-shadow-lg">
+                {project.title}
+              </h1>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <MapPin className="w-4 h-4 text-accent flex-shrink-0" />
+                <span className="text-sm drop-shadow-md">{[project.district, project.neighborhood].filter(Boolean).join(' • ') || 'Konum belirtilmemiş'}</span>
               </div>
-
-              {project.description && (
-                <p className="text-muted-foreground leading-relaxed line-clamp-4 text-sm">{project.description}</p>
-              )}
             </div>
           </div>
-        </section>
 
-        {/* ═══ KPI DASHBOARD GRID ═══ */}
-        <section className="max-w-7xl mx-auto px-6 py-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* KPI 1: Timeline */}
-            <div className="rounded-xl border border-border/30 bg-card/60 backdrop-blur-xl p-5 space-y-3">
+          {/* ═══ KPI CARDS (glassmorphism, overlapping hero) ═══ */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 -mt-6 relative z-10 px-2 lg:px-4">
+            {/* Timeline */}
+            <div className="rounded-xl border border-border/30 bg-card/70 backdrop-blur-xl p-4 space-y-2.5 shadow-lg">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <CalendarDays className="w-4 h-4 text-accent" />
+                <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <CalendarDays className="w-3.5 h-3.5 text-accent" />
                 </div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Zaman Çizelgesi</p>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs text-muted-foreground">
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-[10px] text-muted-foreground">
                   <span>{formatDate(project.start_date)}</span>
                   <span>{formatDate(project.end_date)}</span>
                 </div>
                 <div className="relative">
-                  <Progress value={timelineProgress} className="h-2" />
+                  <Progress value={timelineProgress} className="h-1.5" />
                   {timelineProgress > 0 && timelineProgress < 100 && (
-                    <div className="absolute top-0 h-2 flex items-center" style={{ left: `${timelineProgress}%` }}>
+                    <div className="absolute top-0 h-1.5 flex items-center" style={{ left: `${timelineProgress}%` }}>
                       <div className="w-1.5 h-3 rounded-full bg-accent -translate-x-1/2 shadow-lg shadow-accent/30" />
                     </div>
                   )}
                 </div>
                 {daysRemaining !== null && (
-                  <p className="text-xs font-semibold pt-1">
+                  <p className="text-xs font-semibold">
                     {daysRemaining > 0 ? (
                       <span className="text-accent">{daysRemaining} gün kaldı</span>
                     ) : daysRemaining === 0 ? (
@@ -293,58 +278,85 @@ const ProjectDetail = () => {
               </div>
             </div>
 
-            {/* KPI 2: Finance */}
-            <div className="rounded-xl border border-border/30 bg-card/60 backdrop-blur-xl p-5 space-y-3">
+            {/* Finance */}
+            <div className="rounded-xl border border-border/30 bg-card/70 backdrop-blur-xl p-4 space-y-2.5 shadow-lg">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
-                  <DollarSign className="w-4 h-4 text-green-400" />
+                <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <DollarSign className="w-3.5 h-3.5 text-accent" />
                 </div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Bütçe</p>
               </div>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-xl font-bold text-foreground">
                 {project.budget ? `₺${Number(project.budget).toLocaleString('tr-TR')}` : '—'}
               </p>
               <div className="flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5 text-green-400" />
-                <span className="text-xs text-muted-foreground">Toplam bütçe</span>
+                <TrendingUp className="w-3 h-3 text-accent" />
+                <span className="text-[10px] text-muted-foreground">Toplam bütçe</span>
               </div>
             </div>
 
-            {/* KPI 3: Team */}
-            <div className="rounded-xl border border-border/30 bg-card/60 backdrop-blur-xl p-5 space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <Building2 className="w-4 h-4 text-blue-400" />
-                </div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Sorumlu Birim</p>
-              </div>
-              <p className="text-sm font-semibold text-foreground leading-snug">{project.department || 'Belirtilmemiş'}</p>
-              {project.manager_name && (
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center">
-                    <User className="w-3 h-3 text-blue-400" />
+            {/* Team with Contact Popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="rounded-xl border border-border/30 bg-card/70 backdrop-blur-xl p-4 space-y-2.5 shadow-lg cursor-pointer hover:border-accent/40 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center">
+                      <Building2 className="w-3.5 h-3.5 text-accent" />
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Sorumlu Birim</p>
                   </div>
-                  <span className="text-xs text-muted-foreground">{project.manager_name}</span>
+                  <p className="text-sm font-semibold text-foreground leading-snug">{project.department || 'Belirtilmemiş'}</p>
+                  {project.manager_name && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center">
+                        <User className="w-2.5 h-2.5 text-accent" />
+                      </div>
+                      <span className="text-xs text-accent underline underline-offset-2">{project.manager_name}</span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2 bg-card/95 backdrop-blur-xl border-border/40" align="center">
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-foreground px-2 py-1.5">{project.manager_name || 'Yönetici'}</p>
+                  <a href="tel:+905555555555" className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-foreground hover:bg-accent/10 transition-colors">
+                    <Phone className="w-4 h-4 text-accent" /> Ara
+                  </a>
+                  <a href="https://wa.me/905555555555" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-foreground hover:bg-accent/10 transition-colors">
+                    <MessageCircle className="w-4 h-4 text-accent" /> WhatsApp
+                  </a>
+                  <a href="mailto:info@belediye.bel.tr" className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-foreground hover:bg-accent/10 transition-colors">
+                    <Mail className="w-4 h-4 text-accent" /> E-posta
+                  </a>
+                </div>
+              </PopoverContent>
+            </Popover>
 
-            {/* KPI 4: Impact */}
-            <div className="rounded-xl border border-accent/30 bg-gradient-to-br from-accent/10 to-card/60 backdrop-blur-xl p-5 space-y-3 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+            {/* Impact */}
+            <div className="rounded-xl border border-accent/30 bg-gradient-to-br from-accent/10 to-card/70 backdrop-blur-xl p-4 space-y-2.5 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-accent/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
               <div className="flex items-center gap-2 relative z-10">
-                <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-accent" />
+                <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center">
+                  <Users className="w-3.5 h-3.5 text-accent" />
                 </div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Sosyal Etki</p>
               </div>
-              <p className="text-2xl font-bold text-accent relative z-10">{project.impact_stat || '—'}</p>
-              <p className="text-xs text-muted-foreground relative z-10">Etkilenen vatandaş</p>
+              <p className="text-xl font-bold text-accent relative z-10">{project.impact_stat || '—'}</p>
+              <p className="text-[10px] text-muted-foreground relative z-10">Etkilenen vatandaş</p>
             </div>
+          </div>
+
+          {/* Overall progress bar */}
+          <div className="mt-4 px-2 lg:px-4">
+            <div className="flex items-center justify-between text-sm mb-1.5">
+              <span className="text-muted-foreground font-medium text-xs">Genel İlerleme</span>
+              <span className="text-accent font-bold">{project.progress ?? 0}%</span>
+            </div>
+            <Progress value={project.progress ?? 0} className="h-2" />
           </div>
         </section>
 
-        {/* ═══ TABS (Overview, Map, Gallery) ═══ */}
+        {/* ═══ LOWER SECTION: Tabs + Decision Log ═══ */}
         <section className="max-w-7xl mx-auto px-6 pt-4 pb-2">
           <div className="inline-flex gap-1 p-1 rounded-xl bg-secondary/40 backdrop-blur-xl border border-border/30">
             {tabs.map((t) => (
@@ -364,10 +376,9 @@ const ProjectDetail = () => {
           </div>
         </section>
 
-        {/* Tab Content */}
         <section className="max-w-7xl mx-auto px-6 py-6">
           <div className="rounded-2xl border border-border/30 bg-card/40 backdrop-blur-xl p-6 lg:p-8 min-h-[300px]">
-            {/* OVERVIEW */}
+            {/* OVERVIEW - Full Description */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-bold text-foreground">Proje Açıklaması</h3>
@@ -439,7 +450,6 @@ const ProjectDetail = () => {
         {/* ═══ PRESIDENT'S DECISION LOG ═══ */}
         <section className="max-w-7xl mx-auto px-6 pt-4 pb-16">
           <div className="rounded-2xl border border-accent/20 bg-card/40 backdrop-blur-xl overflow-hidden">
-            {/* Log Header */}
             <div className="px-6 lg:px-8 py-5 border-b border-border/20 bg-accent/5">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center">
@@ -455,7 +465,6 @@ const ProjectDetail = () => {
               </div>
             </div>
 
-            {/* New Instruction Input */}
             <div className="px-6 lg:px-8 py-5 border-b border-border/20">
               <div className="space-y-3">
                 <div className="rounded-xl border border-border/30 bg-background/40 p-1">
@@ -482,7 +491,6 @@ const ProjectDetail = () => {
               </div>
             </div>
 
-            {/* Chronological Log */}
             <div className="px-6 lg:px-8 py-6">
               {notes.length === 0 ? (
                 <p className="text-sm text-muted-foreground/60 py-8 text-center">Henüz talimat kaydı bulunmuyor.</p>
