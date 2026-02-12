@@ -49,9 +49,9 @@ const StatusFooter = ({ project }: { project: Project }) => {
 export const ProjectCard = ({ project }: ProjectCardProps) => {
   return (
     <Link to={`/project/${project.id}`} className="block min-w-[200px] max-w-[200px] flex-shrink-0">
-      <Card className="group relative overflow-hidden bg-secondary/40 backdrop-blur-sm border-border/50 hover:border-accent/50 transition-all duration-300 hover:shadow-xl hover:shadow-accent/20 h-full">
-        {/* Image Container — clean, no badges */}
-        <div className="relative h-28 overflow-hidden bg-muted">
+      <Card className="group relative overflow-hidden bg-secondary/40 backdrop-blur-sm border-border/50 hover:border-accent/50 transition-all duration-300 hover:shadow-xl hover:shadow-accent/20 h-full flex flex-col">
+        {/* Image Container — fixed aspect ratio */}
+        <div className="relative h-28 overflow-hidden bg-muted flex-shrink-0">
           {project.image_url ? (
             <img
               src={project.image_url}
@@ -65,21 +65,23 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
           )}
         </div>
 
-        {/* Content */}
-        <div className="p-3 space-y-2">
-          <div>
+        {/* Content — flex-grow middle, sticky footer */}
+        <div className="p-3 flex flex-col flex-grow">
+          <div className="flex-grow">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">{project.category}</p>
             <h3 className="font-bold text-foreground line-clamp-2 text-sm mt-1">{project.title}</h3>
+
+            {(project.district || project.neighborhood) && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                <MapPin className="w-3 h-3 text-accent flex-shrink-0" />
+                <span className="truncate">{[project.district, project.neighborhood].filter(Boolean).join(' / ')}</span>
+              </div>
+            )}
           </div>
 
-          {(project.district || project.neighborhood) && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="w-3 h-3 text-accent" />
-              <span className="truncate">{[project.district, project.neighborhood].filter(Boolean).join(' / ')}</span>
-            </div>
-          )}
-
-          <StatusFooter project={project} />
+          <div className="mt-auto pt-2">
+            <StatusFooter project={project} />
+          </div>
         </div>
       </Card>
     </Link>
