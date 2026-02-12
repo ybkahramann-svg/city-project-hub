@@ -1,11 +1,11 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Bell } from 'lucide-react';
-import { ProjectHero } from '@/components/ProjectHero';
 import { ProjectCarousel } from '@/components/ProjectCarousel';
 import { CategoryView } from '@/components/CategoryView';
 import { DashboardFilters } from '@/components/DashboardFilters';
-import { ExecutiveSummary } from '@/components/ExecutiveSummary';
+import { CommandCenterMap } from '@/components/CommandCenterMap';
+import { AnalyticsPanel } from '@/components/AnalyticsPanel';
 import { useProjects } from '@/hooks/useProjects';
 
 type Tab = 'projects' | 'categories';
@@ -63,7 +63,6 @@ export const MayorDashboard = () => {
     return result;
   }, [projects, search, district, neighborhood]);
 
-  const featured = filtered.find((p) => p.status === 'In Progress' && p.progress > 0) || filtered[0];
   const inProgress = filtered.filter((p) => p.status === 'In Progress');
   const completed = filtered.filter((p) => p.status === 'Completed');
   const planned = filtered.filter((p) => p.status === 'Planned');
@@ -86,30 +85,32 @@ export const MayorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Tier 1: Brand + Nav + User */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className="max-w-[1440px] mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
-            {/* Tabs */}
-            <div className="flex gap-1 bg-secondary/50 rounded-lg p-1">
-              {(['projects', 'categories'] as Tab[]).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={`px-4 py-1.5 rounded-md text-sm font-semibold uppercase tracking-wide transition-colors ${
-                    tab === t
-                      ? 'bg-accent text-accent-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
+            {/* Brand + Tabs */}
+            <div className="flex items-center gap-6">
+              <h1 className="text-base font-black uppercase tracking-[0.15em] text-accent">KEPEZ BELEDİYESİ</h1>
+              <div className="flex gap-1 bg-secondary/50 rounded-lg p-0.5">
+                {(['projects', 'categories'] as Tab[]).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTab(t)}
+                    className={`px-3.5 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wide transition-colors ${
+                      tab === t
+                        ? 'bg-accent text-accent-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Right: Notifications + Profile */}
             <div className="flex items-center gap-2">
-              {/* Notification Bell */}
               <div ref={notifRef} className="relative">
                 <button
                   onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
@@ -145,7 +146,6 @@ export const MayorDashboard = () => {
                 )}
               </div>
 
-              {/* User Avatar */}
               <div ref={profileRef} className="relative">
                 <button
                   onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
@@ -170,43 +170,43 @@ export const MayorDashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* Filters toolbar */}
-          <div className="mt-3">
-            <DashboardFilters
-              projects={projects}
-              search={search}
-              onSearchChange={setSearch}
-              district={district}
-              onDistrictChange={setDistrict}
-              neighborhood={neighborhood}
-              onNeighborhoodChange={setNeighborhood}
-            />
-          </div>
         </div>
       </header>
 
+      {/* Tier 2: Filters */}
+      <div className="sticky top-[52px] z-40 bg-background/60 backdrop-blur-md border-b border-border/30">
+        <div className="max-w-[1440px] mx-auto px-4 py-2">
+          <DashboardFilters
+            projects={projects}
+            search={search}
+            onSearchChange={setSearch}
+            district={district}
+            onDistrictChange={setDistrict}
+            neighborhood={neighborhood}
+            onNeighborhoodChange={setNeighborhood}
+          />
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-12 space-y-16">
-        <ExecutiveSummary projects={filtered} />
+      <main className="max-w-[1440px] mx-auto px-4 py-6 space-y-10">
+        {/* Command Center Hero: Map + Analytics */}
+        <section className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 h-[420px]">
+          <CommandCenterMap projects={filtered} />
+          <AnalyticsPanel projects={filtered} />
+        </section>
+
         {tab === 'projects' ? (
-          <>
-            {featured && (
-              <section>
-                <ProjectHero project={featured} />
-              </section>
+          <section className="space-y-10">
+            {inProgress.length > 0 && (
+              <ProjectCarousel projects={inProgress} title="In Progress" status="In Progress" />
             )}
-            <section className="space-y-12">
-              {inProgress.length > 0 && (
-                <ProjectCarousel projects={inProgress} title="In Progress" status="In Progress" />
-              )}
-              {completed.length > 0 && (
-                <ProjectCarousel projects={completed} title="Completed" status="Completed" />
-              )}
-              {planned.length > 0 && (
-                <ProjectCarousel projects={planned} title="Planned" status="Planned" />
-              )}
-            </section>
+            {completed.length > 0 && (
+              <ProjectCarousel projects={completed} title="Completed" status="Completed" />
+            )}
+            {planned.length > 0 && (
+              <ProjectCarousel projects={planned} title="Planned" status="Planned" />
+            )}
             {filtered.length === 0 && (
               <div className="text-center py-20 space-y-4">
                 <p className="text-3xl">📋</p>
@@ -214,7 +214,7 @@ export const MayorDashboard = () => {
                 <p className="text-muted-foreground">Try adjusting your search or filters</p>
               </div>
             )}
-          </>
+          </section>
         ) : (
           <CategoryView projects={filtered} />
         )}
