@@ -16,9 +16,7 @@ import {
   Navigation,
   Send,
   Clock,
-  ChevronLeft,
-  ChevronRight,
-  Phone,
+  DollarSign,
   Building2,
   User,
   CalendarDays,
@@ -27,17 +25,17 @@ import {
   ShieldCheck,
   MessageSquare,
   ImageIcon,
+  TrendingUp,
 } from 'lucide-react';
-import { format, differenceInDays, parseISO } from 'date-fns';
+import { format, differenceInDays, parseISO, differenceInCalendarDays } from 'date-fns';
 import { toast } from 'sonner';
 
-type Tab = 'overview' | 'map' | 'gallery' | 'notes';
+type Tab = 'overview' | 'map' | 'gallery';
 
 const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'map', label: 'Location Map', icon: Map },
-  { id: 'gallery', label: 'Gallery', icon: ImageIcon },
-  { id: 'notes', label: "Mayor's Notes", icon: FileText },
+  { id: 'overview', label: 'Genel Bakış', icon: LayoutDashboard },
+  { id: 'map', label: 'Konum', icon: Map },
+  { id: 'gallery', label: 'Galeri', icon: ImageIcon },
 ];
 
 interface ProjectNote {
@@ -68,7 +66,7 @@ const ProjectDetail = () => {
   const [isSendingNote, setIsSendingNote] = useState(false);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
 
-  // Fetch notes from Supabase
+  // Fetch notes
   useEffect(() => {
     if (!id) return;
     const fetchNotes = async () => {
@@ -80,21 +78,14 @@ const ProjectDetail = () => {
       if (!error && data) setNotes(data);
     };
     fetchNotes();
-
-    // Realtime subscription
     const channel = supabase
       .channel(`notes-${id}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'project_notes', filter: `project_id=eq.${id}` },
-        () => { fetchNotes(); }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_notes', filter: `project_id=eq.${id}` }, () => { fetchNotes(); })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [id]);
 
-  // Fetch gallery images
+  // Fetch gallery
   useEffect(() => {
     if (!id) return;
     const fetchGallery = async () => {
@@ -139,173 +130,222 @@ const ProjectDetail = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-3xl">🚫</p>
-          <h2 className="text-xl font-bold text-foreground">Project not found</h2>
+          <h2 className="text-xl font-bold text-foreground">Proje bulunamadı</h2>
           <Button onClick={() => navigate('/mayor')} variant="outline" className="gap-2 border-border/50 hover:border-accent/50 hover:text-accent">
-            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+            <ArrowLeft className="w-4 h-4" /> Panele Dön
           </Button>
         </div>
       </div>
     );
   }
 
-  const statusColor =
-    project.status === 'Completed' ? 'text-green-400' : project.status === 'In Progress' ? 'text-accent' : 'text-blue-400';
-
-  // Compute dynamic data
-  const hasResponsibility = !!(project.department || project.manager_name);
-  const hasTimeline = !!(project.start_date || project.end_date);
-  const hasImpact = !!project.impact_stat;
+  // Computed values
+  const statusColorMap: Record<string, string> = {
+    'Completed': 'bg-green-500/20 text-green-400 border-green-500/30',
+    'In Progress': 'bg-accent/20 text-accent border-accent/30',
+    'Planned': 'bg-blue-400/20 text-blue-400 border-blue-400/30',
+  };
+  const statusPulseMap: Record<string, string> = {
+    'In Progress': 'bg-accent',
+    'Completed': 'bg-green-400',
+    'Planned': 'bg-blue-400',
+  };
 
   let daysRemaining: number | null = null;
-  if (project.end_date) {
+  let timelineProgress = 0;
+  if (project.start_date && project.end_date) {
     try {
-      daysRemaining = differenceInDays(parseISO(project.end_date), new Date());
-    } catch { /* ignore parse errors */ }
+      const start = parseISO(project.start_date);
+      const end = parseISO(project.end_date);
+      const now = new Date();
+      const totalDays = differenceInCalendarDays(end, start);
+      const elapsed = differenceInCalendarDays(now, start);
+      daysRemaining = differenceInDays(end, now);
+      timelineProgress = totalDays > 0 ? Math.min(100, Math.max(0, Math.round((elapsed / totalDays) * 100))) : 0;
+    } catch { /* ignore */ }
+  } else if (project.end_date) {
+    try { daysRemaining = differenceInDays(parseISO(project.end_date), new Date()); } catch { /* ignore */ }
   }
 
   const formatDate = (dateStr?: string) => {
-    if (!dateStr) return null;
+    if (!dateStr) return '—';
     try { return format(parseISO(dateStr), 'dd.MM.yyyy'); } catch { return dateStr; }
   };
 
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Blurred Background */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: project.image_url ? `url('${project.image_url}')` : undefined,
-          filter: 'blur(40px) brightness(0.3)',
-        }}
-      />
-      <div className="absolute inset-0 bg-background/70" />
+      {/* Cinematic blurred background */}
+      {project.image_url && (
+        <>
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url('${project.image_url}')`, filter: 'blur(60px) brightness(0.2) saturate(1.4)' }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+        </>
+      )}
 
-      {/* Content */}
-      <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Header */}
-        <header className="sticky top-0 z-50 bg-background/60 backdrop-blur-md border-b border-border/30">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Button onClick={() => navigate('/mayor')} variant="ghost" className="gap-2 text-muted-foreground hover:text-accent">
-              <ArrowLeft className="w-5 h-5" /> Back to Dashboard
+      <div className="relative z-10 min-h-screen">
+        {/* Sticky Header */}
+        <header className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-border/20">
+          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+            <Button onClick={() => navigate('/mayor')} variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-accent">
+              <ArrowLeft className="w-4 h-4" /> Panele Dön
             </Button>
-            <Badge className="bg-accent/20 text-accent border-accent/30 text-xs">{project.status}</Badge>
+            <div className="flex items-center gap-3">
+              <div className={`w-2 h-2 rounded-full ${statusPulseMap[project.status] || 'bg-muted-foreground'} animate-pulse`} />
+              <Badge className={`text-xs font-semibold ${statusColorMap[project.status] || 'bg-muted/20 text-muted-foreground border-muted/30'}`}>
+                {project.status}
+              </Badge>
+            </div>
           </div>
         </header>
 
-        {/* Hero Section */}
-        <div className="max-w-7xl mx-auto w-full px-6 pt-8 pb-4">
-          <div className="grid lg:grid-cols-[1fr_1.4fr] gap-8 items-center">
-            <div className="rounded-2xl overflow-hidden border border-border/30 bg-secondary/20 aspect-[4/3]">
+        {/* ═══ CINEMATIC HERO ═══ */}
+        <section className="max-w-7xl mx-auto px-6 pt-10 pb-6">
+          <div className="grid lg:grid-cols-[1fr_1fr] gap-8 items-start">
+            {/* Hero Image */}
+            <div className="rounded-2xl overflow-hidden border border-border/20 aspect-video bg-secondary/30 relative group">
               {project.image_url ? (
-                <img
-                  src={project.image_url}
-                  alt={project.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center"><span class="text-6xl">🏗️</span></div>'; }}
-                />
+                <img src={project.image_url} alt={project.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                  <span className="text-6xl">🏗️</span>
+                <div className="w-full h-full bg-gradient-to-br from-accent/5 to-secondary/40 flex items-center justify-center">
+                  <span className="text-7xl opacity-30">🏗️</span>
                 </div>
               )}
+              {/* Progress overlay */}
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent p-4">
+                <div className="flex items-center justify-between text-sm mb-1.5">
+                  <span className="text-muted-foreground font-medium">İlerleme</span>
+                  <span className="text-accent font-bold text-lg">{project.progress ?? 0}%</span>
+                </div>
+                <Progress value={project.progress ?? 0} className="h-2" />
+              </div>
             </div>
-            <div className="space-y-3">
-              {project.category && <Badge className="bg-accent/20 text-accent border-accent/30">{project.category}</Badge>}
-              <h1 className="text-3xl lg:text-4xl font-bold text-foreground leading-tight">{project.title}</h1>
-              {(project.district || project.neighborhood) && (
+
+            {/* Title & Context */}
+            <div className="space-y-5 lg:pt-2">
+              {project.category && (
+                <Badge className="bg-accent/15 text-accent border-accent/20 text-xs tracking-wider uppercase">
+                  {project.category}
+                </Badge>
+              )}
+              <div className="space-y-2">
+                <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground leading-tight tracking-tight">
+                  {project.title}
+                </h1>
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="w-4 h-4 text-accent" />
-                  <span>{[project.district, project.neighborhood].filter(Boolean).join(' / ')}</span>
+                  <MapPin className="w-4 h-4 text-accent flex-shrink-0" />
+                  <span className="text-sm">{[project.district, project.neighborhood].filter(Boolean).join(' • ') || 'Konum belirtilmemiş'}</span>
                 </div>
+              </div>
+
+              {/* Live Status Indicator */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 border border-border/30">
+                  <div className={`w-2.5 h-2.5 rounded-full ${statusPulseMap[project.status] || 'bg-muted-foreground'} animate-pulse shadow-lg`} style={{ boxShadow: project.status === 'In Progress' ? '0 0 8px hsl(var(--accent))' : undefined }} />
+                  <span className="text-xs font-semibold text-foreground tracking-wide">{project.status === 'In Progress' ? 'DEVAM EDİYOR' : project.status === 'Completed' ? 'TAMAMLANDI' : 'PLANLANMIŞ'}</span>
+                </div>
+              </div>
+
+              {project.description && (
+                <p className="text-muted-foreground leading-relaxed line-clamp-4 text-sm">{project.description}</p>
               )}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Command Center Strip — only show cards that have data */}
-        {(hasResponsibility || hasTimeline || hasImpact) && (
-          <div className="max-w-7xl mx-auto w-full px-6 py-4">
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Responsibility Card */}
-              {hasResponsibility && (
-                <div className="rounded-xl border border-border/30 bg-secondary/30 backdrop-blur-xl p-4 space-y-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Sorumlu Birim</p>
-                  {project.department && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="w-4 h-4 text-accent" />
-                      </div>
-                      <p className="text-sm font-semibold text-foreground leading-tight">{project.department}</p>
-                    </div>
-                  )}
-                  {project.manager_name && (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <User className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">{project.manager_name}</span>
-                      </div>
-                      <button className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center hover:bg-accent/20 transition-colors">
-                        <Phone className="w-3.5 h-3.5 text-accent" />
-                      </button>
+        {/* ═══ KPI DASHBOARD GRID ═══ */}
+        <section className="max-w-7xl mx-auto px-6 py-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* KPI 1: Timeline */}
+            <div className="rounded-xl border border-border/30 bg-card/60 backdrop-blur-xl p-5 space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <CalendarDays className="w-4 h-4 text-accent" />
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Zaman Çizelgesi</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{formatDate(project.start_date)}</span>
+                  <span>{formatDate(project.end_date)}</span>
+                </div>
+                <div className="relative">
+                  <Progress value={timelineProgress} className="h-2" />
+                  {timelineProgress > 0 && timelineProgress < 100 && (
+                    <div className="absolute top-0 h-2 flex items-center" style={{ left: `${timelineProgress}%` }}>
+                      <div className="w-1.5 h-3 rounded-full bg-accent -translate-x-1/2 shadow-lg shadow-accent/30" />
                     </div>
                   )}
                 </div>
-              )}
+                {daysRemaining !== null && (
+                  <p className="text-xs font-semibold pt-1">
+                    {daysRemaining > 0 ? (
+                      <span className="text-accent">{daysRemaining} gün kaldı</span>
+                    ) : daysRemaining === 0 ? (
+                      <span className="text-accent">Bugün bitiyor!</span>
+                    ) : (
+                      <span className="text-destructive">{Math.abs(daysRemaining)} gün gecikme</span>
+                    )}
+                  </p>
+                )}
+              </div>
+            </div>
 
-              {/* Timeline Card */}
-              {hasTimeline && (
-                <div className="rounded-xl border border-border/30 bg-secondary/30 backdrop-blur-xl p-4 space-y-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Proje Takvimi</p>
-                  <div className="flex items-center gap-6">
-                    {project.start_date && (
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase">Başlangıç</p>
-                        <p className="text-sm font-semibold text-foreground">{formatDate(project.start_date)}</p>
-                      </div>
-                    )}
-                    <div className="flex-1 h-px bg-gradient-to-r from-accent/50 to-accent/10 relative">
-                      <div className="absolute -top-1 left-0 w-2 h-2 rounded-full bg-accent" />
-                      <div className="absolute -top-1 right-0 w-2 h-2 rounded-full bg-border" />
-                    </div>
-                    {project.end_date && (
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase">Hedef Bitiş</p>
-                        <p className="text-sm font-semibold text-foreground">{formatDate(project.end_date)}</p>
-                      </div>
-                    )}
-                  </div>
-                  {daysRemaining !== null && (
-                    <div className="flex items-center gap-2">
-                      <Hourglass className="w-3.5 h-3.5 text-accent" />
-                      <Badge className="bg-accent/15 text-accent border-accent/20 text-xs font-bold">
-                        {daysRemaining > 0 ? `${daysRemaining} Gün Kaldı` : daysRemaining === 0 ? 'Bugün!' : `${Math.abs(daysRemaining)} Gün Gecikme`}
-                      </Badge>
-                    </div>
-                  )}
+            {/* KPI 2: Finance */}
+            <div className="rounded-xl border border-border/30 bg-card/60 backdrop-blur-xl p-5 space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                  <DollarSign className="w-4 h-4 text-green-400" />
                 </div>
-              )}
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Bütçe</p>
+              </div>
+              <p className="text-2xl font-bold text-foreground">
+                {project.budget ? `₺${Number(project.budget).toLocaleString('tr-TR')}` : '—'}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-green-400" />
+                <span className="text-xs text-muted-foreground">Toplam bütçe</span>
+              </div>
+            </div>
 
-              {/* Impact Card */}
-              {hasImpact && (
-                <div className="sm:col-span-2 lg:col-span-1 rounded-xl border border-accent/30 bg-gradient-to-br from-accent/10 via-secondary/30 to-accent/5 backdrop-blur-xl p-4 space-y-2 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent/70">Sosyal Etki</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center">
-                      <Users className="w-5 h-5 text-accent" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-accent">{project.impact_stat}</p>
-                    </div>
+            {/* KPI 3: Team */}
+            <div className="rounded-xl border border-border/30 bg-card/60 backdrop-blur-xl p-5 space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <Building2 className="w-4 h-4 text-blue-400" />
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Sorumlu Birim</p>
+              </div>
+              <p className="text-sm font-semibold text-foreground leading-snug">{project.department || 'Belirtilmemiş'}</p>
+              {project.manager_name && (
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center">
+                    <User className="w-3 h-3 text-blue-400" />
                   </div>
+                  <span className="text-xs text-muted-foreground">{project.manager_name}</span>
                 </div>
               )}
             </div>
-          </div>
-        )}
 
-        {/* Glass Tabs */}
-        <div className="max-w-7xl mx-auto w-full px-6 pt-4 pb-2">
+            {/* KPI 4: Impact */}
+            <div className="rounded-xl border border-accent/30 bg-gradient-to-br from-accent/10 to-card/60 backdrop-blur-xl p-5 space-y-3 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+              <div className="flex items-center gap-2 relative z-10">
+                <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-accent" />
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Sosyal Etki</p>
+              </div>
+              <p className="text-2xl font-bold text-accent relative z-10">{project.impact_stat || '—'}</p>
+              <p className="text-xs text-muted-foreground relative z-10">Etkilenen vatandaş</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ TABS (Overview, Map, Gallery) ═══ */}
+        <section className="max-w-7xl mx-auto px-6 pt-4 pb-2">
           <div className="inline-flex gap-1 p-1 rounded-xl bg-secondary/40 backdrop-blur-xl border border-border/30">
             {tabs.map((t) => (
               <button
@@ -322,50 +362,33 @@ const ProjectDetail = () => {
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
         {/* Tab Content */}
-        <div className="max-w-7xl mx-auto w-full px-6 py-8 flex-1">
-          <div className="rounded-2xl border border-border/30 bg-secondary/20 backdrop-blur-xl p-6 lg:p-8 min-h-[400px]">
+        <section className="max-w-7xl mx-auto px-6 py-6">
+          <div className="rounded-2xl border border-border/30 bg-card/40 backdrop-blur-xl p-6 lg:p-8 min-h-[300px]">
             {/* OVERVIEW */}
             {activeTab === 'overview' && (
-              <div className="grid lg:grid-cols-2 gap-10">
-                <div className="space-y-6">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Budget</p>
-                    <p className="text-4xl font-bold text-accent">₺{Number(project.budget || 0).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Status</p>
-                    <p className={`text-xl font-semibold ${statusColor}`}>{project.status}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground uppercase tracking-widest text-[11px] font-semibold">Progress</span>
-                      <span className="text-accent font-bold text-lg">{project.progress ?? 0}%</span>
-                    </div>
-                    <Progress value={project.progress ?? 0} className="h-3" />
-                  </div>
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Description</p>
-                  <p className="text-foreground/80 leading-relaxed text-lg">{project.description || 'No description provided.'}</p>
-                </div>
+              <div className="space-y-6">
+                <h3 className="text-lg font-bold text-foreground">Proje Açıklaması</h3>
+                <p className="text-foreground/80 leading-relaxed text-base max-w-3xl">
+                  {project.description || 'Açıklama bulunmuyor.'}
+                </p>
               </div>
             )}
 
-            {/* LOCATION MAP */}
+            {/* MAP */}
             {activeTab === 'map' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-bold text-foreground">Project Location</h3>
+                    <h3 className="text-lg font-bold text-foreground">Proje Konumu</h3>
                     <p className="text-muted-foreground text-sm mt-1">
-                      {[project.district, project.neighborhood].filter(Boolean).join(', ') || 'Location not specified'}
+                      {[project.district, project.neighborhood].filter(Boolean).join(', ') || 'Konum belirtilmemiş'}
                     </p>
                   </div>
-                  <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
-                    <Navigation className="w-4 h-4" /> Get Directions
+                  <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90" size="sm">
+                    <Navigation className="w-4 h-4" /> Yol Tarifi
                   </Button>
                 </div>
                 <div className="rounded-xl border border-border/30 bg-background/60 h-[350px] flex items-center justify-center relative overflow-hidden">
@@ -382,7 +405,7 @@ const ProjectDetail = () => {
                       <MapPin className="w-5 h-5 text-accent" />
                     </div>
                     <span className="text-xs text-muted-foreground font-medium bg-background/80 px-3 py-1 rounded-full">
-                      {project.district || 'District'}, {project.neighborhood || 'Neighborhood'}
+                      {project.district || 'İlçe'}, {project.neighborhood || 'Mahalle'}
                     </span>
                   </div>
                 </div>
@@ -392,96 +415,104 @@ const ProjectDetail = () => {
             {/* GALLERY */}
             {activeTab === 'gallery' && (
               <div className="space-y-6">
-                <h3 className="text-xl font-bold text-foreground">Project Gallery</h3>
+                <h3 className="text-lg font-bold text-foreground">Proje Galerisi</h3>
                 {galleryImages.length === 0 ? (
                   <div className="text-center py-16 text-muted-foreground space-y-3">
                     <ImageIcon className="w-12 h-12 mx-auto opacity-40" />
-                    <p className="text-sm">No gallery images yet. Upload from the Admin panel.</p>
+                    <p className="text-sm">Henüz galeri görseli eklenmemiş.</p>
                   </div>
                 ) : (
                   <div className="columns-2 md:columns-3 gap-4 space-y-4">
                     {galleryImages.map((img) => (
                       <div key={img.id} className="break-inside-avoid rounded-xl border border-border/30 overflow-hidden bg-background/40">
-                        <img
-                          src={img.image_url}
-                          alt={img.caption || 'Gallery image'}
-                          className="w-full object-cover"
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        />
-                        {img.caption && (
-                          <p className="p-2 text-xs text-muted-foreground">{img.caption}</p>
-                        )}
+                        <img src={img.image_url} alt={img.caption || 'Galeri'} className="w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        {img.caption && <p className="p-2 text-xs text-muted-foreground">{img.caption}</p>}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             )}
+          </div>
+        </section>
 
-            {/* MAYOR'S NOTES */}
-            {activeTab === 'notes' && (
-              <div className="space-y-8">
-                {/* New Note Input */}
-                <div className="max-w-2xl space-y-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground">Direktif & Talimatlar</h3>
-                    <p className="text-muted-foreground text-sm mt-1">Daire başkanlarına proje hakkında talimat gönderin.</p>
-                  </div>
-                  <div className="rounded-xl border border-accent/20 bg-background/40 p-1">
-                    <Textarea
-                      value={noteText}
-                      onChange={(e) => setNoteText(e.target.value)}
-                      placeholder="Talimatınızı buraya yazın..."
-                      className="min-h-[120px] bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder:text-muted-foreground/50 resize-none text-base"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-accent" /> Şifreli • Sadece yetkili personel görebilir
-                    </p>
-                    <Button
-                      onClick={handleSendNote}
-                      className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 px-6"
-                      disabled={!noteText.trim() || isSendingNote}
-                    >
-                      <Send className="w-4 h-4" /> {isSendingNote ? 'Gönderiliyor...' : 'Emir Gönder'}
-                    </Button>
-                  </div>
+        {/* ═══ PRESIDENT'S DECISION LOG ═══ */}
+        <section className="max-w-7xl mx-auto px-6 pt-4 pb-16">
+          <div className="rounded-2xl border border-accent/20 bg-card/40 backdrop-blur-xl overflow-hidden">
+            {/* Log Header */}
+            <div className="px-6 lg:px-8 py-5 border-b border-border/20 bg-accent/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-accent" />
                 </div>
-
-                {/* Historical Log */}
-                <div className="max-w-2xl space-y-4">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Geçmiş Kayıtlar</p>
-                  </div>
-                  {notes.length === 0 ? (
-                    <p className="text-sm text-muted-foreground/60 py-4">Henüz kayıt bulunmuyor.</p>
-                  ) : (
-                    <div className="relative pl-6 border-l-2 border-border/30 space-y-6">
-                      {notes.map((note) => (
-                        <div key={note.id} className="relative">
-                          <div className="absolute -left-[calc(1.5rem+5px)] w-2.5 h-2.5 rounded-full bg-accent/60 border-2 border-background" />
-                          <div className="rounded-xl border border-border/20 bg-background/30 backdrop-blur-sm p-4 space-y-2 hover:border-accent/20 transition-colors">
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline" className="text-[10px] border-accent/20 text-accent font-mono">
-                                {format(new Date(note.created_at), 'dd.MM.yyyy HH:mm')}
-                              </Badge>
-                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                <MessageSquare className="w-3 h-3" /> {note.author}
-                              </span>
-                            </div>
-                            <p className="text-sm text-foreground/80 leading-relaxed">{note.text}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <div>
+                  <h2 className="text-lg font-bold text-foreground">Başkanlık Karar Defteri</h2>
+                  <p className="text-xs text-muted-foreground">Talimat ve direktif geçmişi</p>
+                </div>
+                <div className="ml-auto">
+                  <Badge variant="outline" className="text-xs border-accent/20 text-accent">{notes.length} kayıt</Badge>
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* New Instruction Input */}
+            <div className="px-6 lg:px-8 py-5 border-b border-border/20">
+              <div className="space-y-3">
+                <div className="rounded-xl border border-border/30 bg-background/40 p-1">
+                  <Textarea
+                    value={noteText}
+                    onChange={(e) => setNoteText(e.target.value)}
+                    placeholder="Yeni talimat veya direktif yazın..."
+                    className="min-h-[100px] bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder:text-muted-foreground/50 resize-none text-sm"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-accent" /> Şifreli kayıt • Sadece yetkili personel görür
+                  </p>
+                  <Button
+                    onClick={handleSendNote}
+                    className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 px-5"
+                    size="sm"
+                    disabled={!noteText.trim() || isSendingNote}
+                  >
+                    <Send className="w-3.5 h-3.5" /> {isSendingNote ? 'Gönderiliyor...' : 'Talimat Gönder'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Chronological Log */}
+            <div className="px-6 lg:px-8 py-6">
+              {notes.length === 0 ? (
+                <p className="text-sm text-muted-foreground/60 py-8 text-center">Henüz talimat kaydı bulunmuyor.</p>
+              ) : (
+                <div className="relative pl-6 border-l-2 border-accent/20 space-y-5">
+                  {notes.map((note) => {
+                    const noteDate = new Date(note.created_at);
+                    return (
+                      <div key={note.id} className="relative group">
+                        <div className="absolute -left-[calc(1.5rem+5px)] w-2.5 h-2.5 rounded-full bg-accent/60 border-2 border-card group-hover:bg-accent transition-colors" />
+                        <div className="rounded-xl border border-border/20 bg-background/30 backdrop-blur-sm p-4 space-y-2 hover:border-accent/20 transition-colors">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <Badge variant="outline" className="text-[10px] border-accent/20 text-accent font-mono px-2 py-0.5">
+                              {format(noteDate, 'dd MMM yyyy')}
+                            </Badge>
+                            <span className="text-[10px] text-muted-foreground/60">{format(noteDate, 'HH:mm')}</span>
+                            <span className="ml-auto text-[10px] text-muted-foreground flex items-center gap-1">
+                              <MessageSquare className="w-3 h-3" /> {note.author}
+                            </span>
+                          </div>
+                          <p className="text-sm text-foreground/80 leading-relaxed">{note.text}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
