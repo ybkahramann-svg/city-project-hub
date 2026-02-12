@@ -1,7 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, Bell } from 'lucide-react';
 import { ProjectHero } from '@/components/ProjectHero';
 import { ProjectCarousel } from '@/components/ProjectCarousel';
 import { CategoryView } from '@/components/CategoryView';
@@ -11,6 +10,13 @@ import { useProjects } from '@/hooks/useProjects';
 
 type Tab = 'projects' | 'categories';
 
+const MOCK_NOTIFICATIONS = [
+  { id: 1, text: 'Ahmet Yılmaz updated Science Center', projectId: '1', read: false },
+  { id: 2, text: 'Park Project marked as completed', projectId: '2', read: false },
+  { id: 3, text: 'New budget approved for Altyapı', projectId: '3', read: true },
+  { id: 4, text: 'Fen İşleri inspection scheduled', projectId: '4', read: false },
+];
+
 export const MayorDashboard = () => {
   const navigate = useNavigate();
   const { data: projects = [], isLoading } = useProjects();
@@ -18,6 +24,28 @@ export const MayorDashboard = () => {
   const [search, setSearch] = useState('');
   const [district, setDistrict] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleNotifClick = (notif: typeof MOCK_NOTIFICATIONS[0]) => {
+    setNotifications((prev) => prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n)));
+    setNotifOpen(false);
+    navigate(`/project/${notif.projectId}`);
+  };
 
   const filtered = useMemo(() => {
     let result = projects;
@@ -60,7 +88,7 @@ export const MayorDashboard = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-7xl mx-auto px-4 py-4 space-y-3">
+        <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Tabs */}
             <div className="flex gap-1 bg-secondary/50 rounded-lg p-1">
@@ -79,29 +107,82 @@ export const MayorDashboard = () => {
               ))}
             </div>
 
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                size="sm"
-                className="gap-2 border-border/50 hover:border-accent/50 hover:text-accent"
-              >
-                <LogOut className="w-4 h-4" />
-                Exit
-              </Button>
+            {/* Right: Notifications + Profile */}
+            <div className="flex items-center gap-2">
+              {/* Notification Bell */}
+              <div ref={notifRef} className="relative">
+                <button
+                  onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
+                  className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-destructive" />
+                  )}
+                </button>
+                {notifOpen && (
+                  <div className="absolute right-0 mt-2 w-80 rounded-lg border border-border bg-popover shadow-xl z-50">
+                    <div className="p-3 border-b border-border">
+                      <h4 className="text-sm font-semibold text-foreground">Notifications</h4>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {notifications.map((n) => (
+                        <button
+                          key={n.id}
+                          onClick={() => handleNotifClick(n)}
+                          className={`w-full text-left px-3 py-2.5 text-sm hover:bg-secondary/60 transition-colors border-b border-border/30 last:border-0 ${
+                            n.read ? 'text-muted-foreground' : 'text-foreground'
+                          }`}
+                        >
+                          <div className="flex items-start gap-2">
+                            {!n.read && <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />}
+                            <span className={!n.read ? '' : 'ml-3.5'}>{n.text}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* User Avatar */}
+              <div ref={profileRef} className="relative">
+                <button
+                  onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
+                  className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-xs font-bold hover:ring-2 hover:ring-accent/50 transition-all"
+                >
+                  KB
+                </button>
+                {profileOpen && (
+                  <div className="absolute right-0 mt-2 w-44 rounded-lg border border-border bg-popover shadow-xl z-50">
+                    <button className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-secondary/60 transition-colors rounded-t-lg">
+                      Profile
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-secondary/60 transition-colors rounded-b-lg flex items-center gap-2"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Filters */}
-          <DashboardFilters
-            projects={projects}
-            search={search}
-            onSearchChange={setSearch}
-            district={district}
-            onDistrictChange={setDistrict}
-            neighborhood={neighborhood}
-            onNeighborhoodChange={setNeighborhood}
-          />
+          {/* Filters toolbar */}
+          <div className="mt-3">
+            <DashboardFilters
+              projects={projects}
+              search={search}
+              onSearchChange={setSearch}
+              district={district}
+              onDistrictChange={setDistrict}
+              neighborhood={neighborhood}
+              onNeighborhoodChange={setNeighborhood}
+            />
+          </div>
         </div>
       </header>
 
