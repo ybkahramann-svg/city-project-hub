@@ -49,7 +49,7 @@ const StatusFooter = ({ project }: { project: Project }) => {
 export const ProjectCard = ({ project }: ProjectCardProps) => {
   return (
     <Link to={`/project/${project.id}`} className="block min-w-[200px] max-w-[200px] flex-shrink-0">
-      <Card className="group relative overflow-hidden bg-secondary/40 backdrop-blur-sm border-border/50 hover:border-accent/50 transition-all duration-300 hover:shadow-xl hover:shadow-accent/20 h-full flex flex-col">
+      <Card className="group relative overflow-hidden bg-secondary/40 backdrop-blur-sm border-border/50 hover:border-accent/50 transition-all duration-300 hover:shadow-lg hover:shadow-accent/10 hover:scale-105 h-full flex flex-col">
         {/* Image Container — fixed aspect ratio */}
         <div className="relative h-28 overflow-hidden bg-muted flex-shrink-0">
           {project.image_url ? (
