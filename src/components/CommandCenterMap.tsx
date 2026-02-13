@@ -14,23 +14,13 @@ const STATUS_COLORS: Record<string, string> = {
   'Planned': '#ef4444',
 };
 
-// Antalya districts with approximate coordinates for scattering
-const DISTRICT_COORDS: Record<string, [number, number]> = {
-  'Kepez': [36.9450, 30.6900],
-  'Muratpaşa': [36.8850, 30.7050],
-  'Konyaaltı': [36.8700, 30.6350],
-  'Aksu': [36.9250, 30.8000],
-  'Döşemealtı': [37.0100, 30.6000],
-};
-
 const DEFAULT_CENTER: [number, number] = [36.9200, 30.7000];
 
-const getCoords = (project: Project, index: number): [number, number] => {
-  const base = (project.district && DISTRICT_COORDS[project.district]) || DEFAULT_CENTER;
-  // Scatter to prevent overlap
-  const angle = (index * 137.508) * (Math.PI / 180);
-  const radius = 0.005 + (index % 5) * 0.003;
-  return [base[0] + Math.cos(angle) * radius, base[1] + Math.sin(angle) * radius];
+const getCoords = (project: Project): [number, number] => {
+  if (project.latitude && project.longitude) {
+    return [project.latitude, project.longitude];
+  }
+  return DEFAULT_CENTER;
 };
 
 export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
@@ -72,7 +62,7 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
     });
 
     projects.forEach((project, i) => {
-      const [lat, lng] = getCoords(project, i);
+      const [lat, lng] = getCoords(project);
       const color = STATUS_COLORS[project.status] || '#eab308';
 
       const marker = L.circleMarker([lat, lng], {

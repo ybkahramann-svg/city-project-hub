@@ -22,6 +22,8 @@ export interface Project {
   start_date?: string;
   end_date?: string;
   impact_stat?: string;
+  latitude?: number;
+  longitude?: number;
   created_at?: string;
 }
 
