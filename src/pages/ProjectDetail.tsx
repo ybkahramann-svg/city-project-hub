@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { supabase } from '@/integrations/supabase/client';
@@ -514,8 +514,98 @@ const ProjectDetail = () => {
             </div>
           </div>
         </section>
+
+        {/* ═══ PROJE GALERİSİ (from gallery_images column) ═══ */}
+        {project.gallery_images && project.gallery_images.length > 0 && (
+          <GalleryFromImages images={project.gallery_images} />
+        )}
       </div>
     </div>
+  );
+};
+
+/* Inline gallery component using gallery_images string array */
+const GalleryFromImages = ({ images }: { images: string[] }) => {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (lightboxIndex === null) return;
+    if (e.key === 'Escape') setLightboxIndex(null);
+    if (e.key === 'ArrowLeft') setLightboxIndex((i) => (i !== null ? (i - 1 + images.length) % images.length : null));
+    if (e.key === 'ArrowRight') setLightboxIndex((i) => (i !== null ? (i + 1) % images.length : null));
+  }, [lightboxIndex, images.length]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  return (
+    <section className="max-w-7xl mx-auto px-6 pt-4 pb-16">
+      <div className="rounded-2xl border border-border/30 bg-card/40 backdrop-blur-xl overflow-hidden">
+        <div className="px-6 lg:px-8 py-5 border-b border-border/20 bg-accent/5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center">
+              <ImageIcon className="w-5 h-5 text-accent" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Proje Galerisi</h2>
+              <p className="text-xs text-muted-foreground">{images.length} görsel</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 lg:p-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {images.map((url, i) => (
+              <button
+                key={i}
+                onClick={() => setLightboxIndex(i)}
+                className="relative aspect-[4/3] rounded-xl overflow-hidden border border-border/30 hover:border-accent/50 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:shadow-accent/10 group"
+              >
+                <ProjectImage src={url} alt={`Galeri ${i + 1}`} />
+                <div className="absolute inset-0 bg-background/0 group-hover:bg-background/10 transition-colors" />
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && (
+        <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-xl flex items-center justify-center" onClick={() => setLightboxIndex(null)}>
+          <button className="absolute top-6 right-6 w-10 h-10 rounded-full bg-card/60 border border-border/30 flex items-center justify-center text-foreground hover:bg-accent/20 transition-colors z-10">
+            <span className="text-lg">✕</span>
+          </button>
+
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + images.length) % images.length); }}
+                className="absolute left-6 w-10 h-10 rounded-full bg-card/60 border border-border/30 flex items-center justify-center text-foreground hover:bg-accent/20 transition-colors z-10"
+              >
+                ‹
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % images.length); }}
+                className="absolute right-6 w-10 h-10 rounded-full bg-card/60 border border-border/30 flex items-center justify-center text-foreground hover:bg-accent/20 transition-colors z-10"
+              >
+                ›
+              </button>
+            </>
+          )}
+
+          <img
+            src={images[lightboxIndex]}
+            alt={`Galeri ${lightboxIndex + 1}`}
+            className="max-w-[90vw] max-h-[85vh] object-contain rounded-xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          <p className="absolute bottom-6 text-xs text-muted-foreground">{lightboxIndex + 1} / {images.length}</p>
+        </div>
+      )}
+    </section>
   );
 };
 
