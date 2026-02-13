@@ -23,7 +23,7 @@ const DISTRICT_COORDS: Record<string, [number, number]> = {
   'Döşemealtı': [37.0100, 30.6000],
 };
 
-const DEFAULT_CENTER: [number, number] = [36.93, 30.70];
+const DEFAULT_CENTER: [number, number] = [36.9200, 30.7000];
 
 const getCoords = (project: Project, index: number): [number, number] => {
   const base = (project.district && DISTRICT_COORDS[project.district]) || DEFAULT_CENTER;
