@@ -3,6 +3,7 @@ import { Project } from '@/lib/externalDb';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { MapPin, CheckCircle2 } from 'lucide-react';
+import { ProjectImage } from './ProjectImage';
 
 interface ProjectCardProps {
   project: Project;
@@ -52,17 +53,11 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
       <Card className="group relative overflow-hidden bg-secondary/40 backdrop-blur-sm border-border/50 hover:border-accent/50 transition-all duration-300 hover:shadow-lg hover:shadow-accent/10 hover:scale-105 h-full flex flex-col">
         {/* Image Container — fixed aspect ratio */}
         <div className="relative h-28 overflow-hidden bg-muted flex-shrink-0">
-          {project.image_url ? (
-            <img
-              src={project.image_url}
-              alt={project.title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-              <div className="text-2xl text-primary">📋</div>
-            </div>
-          )}
+          <ProjectImage
+            src={project.image_url}
+            alt={project.title}
+            className="group-hover:scale-110 transition-transform duration-300"
+          />
         </div>
 
         {/* Content — flex-grow middle, sticky footer */}
