@@ -8,7 +8,8 @@ import { CommandCenterMap } from '@/components/CommandCenterMap';
 import { AnalyticsPanel } from '@/components/AnalyticsPanel';
 import { useProjects } from '@/hooks/useProjects';
 
-type Tab = 'projects' | 'categories';
+type ViewMode = 'projects' | 'categories';
+type StatusFilter = '' | 'In Progress' | 'Completed' | 'Planned';
 
 const MOCK_NOTIFICATIONS = [
   { id: 1, text: 'Ahmet Yılmaz updated Science Center', projectId: '1', read: false },
@@ -20,7 +21,9 @@ const MOCK_NOTIFICATIONS = [
 export const MayorDashboard = () => {
   const navigate = useNavigate();
   const { data: projects = [], isLoading } = useProjects();
-  const [tab, setTab] = useState<Tab>('projects');
+  const [viewMode, setViewMode] = useState<ViewMode>('projects');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('');
+
   const [search, setSearch] = useState('');
   const [district, setDistrict] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
@@ -58,10 +61,11 @@ export const MayorDashboard = () => {
           p.category?.toLowerCase().includes(q)
       );
     }
+    if (statusFilter) result = result.filter((p) => p.status === statusFilter);
     if (district) result = result.filter((p) => p.district === district);
     if (neighborhood) result = result.filter((p) => p.neighborhood === neighborhood);
     return result;
-  }, [projects, search, district, neighborhood]);
+  }, [projects, search, statusFilter, district, neighborhood]);
 
   const inProgress = filtered.filter((p) => p.status === 'In Progress');
   const completed = filtered.filter((p) => p.status === 'Completed');
@@ -85,29 +89,39 @@ export const MayorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Tier 1: Brand + Nav + User */}
+       {/* Tier 1: Brand + Nav + User */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-[1440px] mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
-            {/* Brand + Tabs */}
-            <div className="flex items-center gap-6">
-              <h1 className="text-base font-black uppercase tracking-[0.15em] text-accent">KEPEZ BELEDİYESİ</h1>
-              <div className="flex gap-1 bg-secondary/50 rounded-lg p-0.5">
-                {(['projects', 'categories'] as Tab[]).map((t) => (
+            {/* Brand */}
+            <h1 className="text-base font-black uppercase tracking-[0.15em] text-accent flex-shrink-0">KEPEZ BELEDİYESİ</h1>
+
+            {/* Center Nav Links */}
+            <nav className="hidden md:flex items-center gap-1">
+              {([
+                { label: 'Tüm Projeler', status: '' as StatusFilter, mode: 'projects' as ViewMode },
+                { label: 'Devam Edenler', status: 'In Progress' as StatusFilter, mode: 'projects' as ViewMode },
+                { label: 'Tamamlananlar', status: 'Completed' as StatusFilter, mode: 'projects' as ViewMode },
+                { label: 'Planlananlar', status: 'Planned' as StatusFilter, mode: 'projects' as ViewMode },
+                { label: 'Kategoriler', status: '' as StatusFilter, mode: 'categories' as ViewMode },
+              ]).map((item) => {
+                const isActive = viewMode === item.mode && statusFilter === item.status && !(item.mode === 'projects' && item.status === '' && viewMode === 'categories');
+                const isActiveCategory = item.mode === 'categories' && viewMode === 'categories';
+                return (
                   <button
-                    key={t}
-                    onClick={() => setTab(t)}
-                    className={`px-3.5 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wide transition-colors ${
-                      tab === t
-                        ? 'bg-accent text-accent-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
+                    key={item.label}
+                    onClick={() => { setViewMode(item.mode); setStatusFilter(item.status); }}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-colors ${
+                      isActive || isActiveCategory
+                        ? 'text-accent'
+                        : 'text-muted-foreground hover:text-accent'
                     }`}
                   >
-                    {t}
+                    {item.label}
                   </button>
-                ))}
-              </div>
-            </div>
+                );
+              })}
+            </nav>
 
             {/* Right: Notifications + Profile */}
             <div className="flex items-center gap-2">
@@ -191,12 +205,16 @@ export const MayorDashboard = () => {
       {/* Main Content */}
       <main className="max-w-[1440px] mx-auto px-4 py-6 space-y-10">
         {/* Command Center Hero: Map + Analytics */}
-        <section className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 h-[420px]">
-          <CommandCenterMap projects={filtered} />
-          <AnalyticsPanel projects={filtered} />
+        <section className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 lg:h-[420px]">
+          <div className="h-[350px] lg:h-full">
+            <CommandCenterMap projects={filtered} />
+          </div>
+          <div className="h-auto lg:h-full">
+            <AnalyticsPanel projects={filtered} />
+          </div>
         </section>
 
-        {tab === 'projects' ? (
+        {viewMode === 'projects' ? (
           <section className="space-y-10">
             {inProgress.length > 0 && (
               <ProjectCarousel projects={inProgress} title="In Progress" status="In Progress" />
