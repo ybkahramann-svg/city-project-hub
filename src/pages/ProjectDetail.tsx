@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { format, differenceInDays, parseISO, differenceInCalendarDays } from 'date-fns';
 import { toast } from 'sonner';
+import { ProjectImage } from '@/components/ProjectImage';
+import { GalleryLightbox } from '@/components/GalleryLightbox';
 
 type Tab = 'overview' | 'map' | 'gallery';
 
@@ -210,13 +212,11 @@ const ProjectDetail = () => {
         <section className="max-w-7xl mx-auto px-6 pt-10 pb-6">
           {/* Hero Image with Title Overlay */}
           <div className="relative rounded-2xl overflow-hidden border border-border/20 aspect-[21/9] bg-secondary/30 group">
-            {project.image_url ? (
-              <img src={project.image_url} alt={project.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-accent/5 to-secondary/40 flex items-center justify-center">
-                <span className="text-7xl opacity-30">🏗️</span>
-              </div>
-            )}
+            <ProjectImage
+              src={project.image_url}
+              alt={project.title}
+              className="transition-transform duration-700 group-hover:scale-105"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
             <div className="absolute bottom-0 inset-x-0 p-6 lg:p-8 space-y-2">
@@ -433,14 +433,7 @@ const ProjectDetail = () => {
                     <p className="text-sm">Henüz galeri görseli eklenmemiş.</p>
                   </div>
                 ) : (
-                  <div className="columns-2 md:columns-3 gap-4 space-y-4">
-                    {galleryImages.map((img) => (
-                      <div key={img.id} className="break-inside-avoid rounded-xl border border-border/30 overflow-hidden bg-background/40">
-                        <img src={img.image_url} alt={img.caption || 'Galeri'} className="w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                        {img.caption && <p className="p-2 text-xs text-muted-foreground">{img.caption}</p>}
-                      </div>
-                    ))}
-                  </div>
+                  <GalleryLightbox images={galleryImages} />
                 )}
               </div>
             )}
