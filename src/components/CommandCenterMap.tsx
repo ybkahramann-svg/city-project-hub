@@ -9,12 +9,38 @@ interface CommandCenterMapProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  'Completed': '#22c55e',
-  'In Progress': '#eab308',
-  'Planned': '#ef4444',
+  'Completed': '#10B981',
+  'In Progress': '#EAB308',
+  'Planned': '#F87171',
+};
+
+const STATUS_GLOW: Record<string, string> = {
+  'Completed': '0 0 8px rgba(16,185,129,0.5)',
+  'In Progress': '0 0 8px rgba(234,179,8,0.4)',
+  'Planned': '0 0 6px rgba(248,113,113,0.4)',
 };
 
 const DEFAULT_CENTER: [number, number] = [36.9200, 30.7000];
+
+// Approximate Kepez district boundary polygon
+const KEPEZ_BOUNDARY: [number, number][] = [
+  [36.975, 30.620],
+  [36.980, 30.660],
+  [36.975, 30.700],
+  [36.965, 30.740],
+  [36.950, 30.770],
+  [36.930, 30.785],
+  [36.905, 30.780],
+  [36.885, 30.760],
+  [36.870, 30.730],
+  [36.865, 30.690],
+  [36.870, 30.650],
+  [36.885, 30.620],
+  [36.905, 30.600],
+  [36.930, 30.595],
+  [36.950, 30.600],
+  [36.975, 30.620],
+];
 
 const getCoords = (project: Project): [number, number] => {
   if (project.latitude && project.longitude) {
@@ -44,6 +70,15 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+    // Kepez district boundary
+    L.polygon(KEPEZ_BOUNDARY, {
+      color: 'rgba(234,179,8,0.18)',
+      weight: 1.5,
+      fillColor: 'rgba(234,179,8,0.04)',
+      fillOpacity: 1,
+      dashArray: '6 4',
+    }).addTo(map);
+
     mapInstance.current = map;
 
     return () => {
@@ -61,17 +96,27 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
       if (layer instanceof L.CircleMarker) map.removeLayer(layer);
     });
 
-    projects.forEach((project, i) => {
+    // Fit bounds to all project markers if available
+    const validCoords = projects
+      .filter(p => p.latitude && p.longitude)
+      .map(p => [p.latitude!, p.longitude!] as [number, number]);
+
+    if (validCoords.length > 1) {
+      map.fitBounds(L.latLngBounds(validCoords).pad(0.15), { maxZoom: 14 });
+    }
+
+    projects.forEach((project) => {
       const [lat, lng] = getCoords(project);
-      const color = STATUS_COLORS[project.status] || '#eab308';
+      const color = STATUS_COLORS[project.status] || '#EAB308';
+      const glow = STATUS_GLOW[project.status] || 'none';
 
       const marker = L.circleMarker([lat, lng], {
-        radius: 7,
+        radius: 5,
         fillColor: color,
-        fillOpacity: 0.85,
-        color: color,
-        weight: 2,
-        opacity: 0.5,
+        fillOpacity: 0.9,
+        color: 'rgba(255,255,255,0.5)',
+        weight: 1.5,
+        opacity: 1,
       }).addTo(map);
 
       const progress = project.progress ?? 0;
@@ -96,7 +141,7 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
         <div className="flex gap-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           {Object.entries(STATUS_COLORS).map(([status, color]) => (
             <div key={status} className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color, boxShadow: STATUS_GLOW[status] }} />
               {status}
             </div>
           ))}

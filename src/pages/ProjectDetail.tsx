@@ -423,20 +423,20 @@ const ProjectDetail = () => {
               </div>
             )}
 
-            {/* GALLERY */}
-            {activeTab === 'gallery' && (
-              <div className="space-y-6">
-                <h3 className="text-lg font-bold text-foreground">Proje Galerisi</h3>
-                {galleryImages.length === 0 ? (
-                  <div className="text-center py-16 text-muted-foreground space-y-3">
-                    <ImageIcon className="w-12 h-12 mx-auto opacity-40" />
-                    <p className="text-sm">Henüz galeri görseli eklenmemiş.</p>
-                  </div>
-                ) : (
-                  <GalleryLightbox images={galleryImages} />
-                )}
-              </div>
-            )}
+            {/* GALLERY - combines project_gallery table + gallery_images column */}
+            {activeTab === 'gallery' && (() => {
+              const allImages: string[] = [
+                ...galleryImages.map(g => g.image_url),
+                ...(project.gallery_images || []),
+              ];
+              if (allImages.length === 0) return (
+                <div className="text-center py-16 text-muted-foreground space-y-3">
+                  <ImageIcon className="w-12 h-12 mx-auto opacity-40" />
+                  <p className="text-sm">Henüz galeri görseli eklenmemiş.</p>
+                </div>
+              );
+              return <GalleryInline images={allImages} />;
+            })()}
           </div>
         </section>
 
@@ -515,17 +515,13 @@ const ProjectDetail = () => {
           </div>
         </section>
 
-        {/* ═══ PROJE GALERİSİ (from gallery_images column) ═══ */}
-        {project.gallery_images && project.gallery_images.length > 0 && (
-          <GalleryFromImages images={project.gallery_images} />
-        )}
       </div>
     </div>
   );
 };
 
 /* Inline gallery component using gallery_images string array */
-const GalleryFromImages = ({ images }: { images: string[] }) => {
+const GalleryInline = ({ images }: { images: string[] }) => {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -541,34 +537,23 @@ const GalleryFromImages = ({ images }: { images: string[] }) => {
   }, [handleKeyDown]);
 
   return (
-    <section className="max-w-7xl mx-auto px-6 pt-4 pb-16">
-      <div className="rounded-2xl border border-border/30 bg-card/40 backdrop-blur-xl overflow-hidden">
-        <div className="px-6 lg:px-8 py-5 border-b border-border/20 bg-accent/5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center">
-              <ImageIcon className="w-5 h-5 text-accent" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">Proje Galerisi</h2>
-              <p className="text-xs text-muted-foreground">{images.length} görsel</p>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <h3 className="text-lg font-bold text-foreground">Proje Galerisi</h3>
+        <span className="text-xs text-muted-foreground">({images.length} görsel)</span>
+      </div>
 
-        <div className="p-6 lg:p-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {images.map((url, i) => (
-              <button
-                key={i}
-                onClick={() => setLightboxIndex(i)}
-                className="relative aspect-[4/3] rounded-xl overflow-hidden border border-border/30 hover:border-accent/50 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:shadow-accent/10 group"
-              >
-                <ProjectImage src={url} alt={`Galeri ${i + 1}`} />
-                <div className="absolute inset-0 bg-background/0 group-hover:bg-background/10 transition-colors" />
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {images.map((url, i) => (
+          <button
+            key={i}
+            onClick={() => setLightboxIndex(i)}
+            className="relative aspect-[4/3] rounded-xl overflow-hidden border border-border/30 hover:border-accent/50 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:shadow-accent/10 group"
+          >
+            <ProjectImage src={url} alt={`Galeri ${i + 1}`} />
+            <div className="absolute inset-0 bg-background/0 group-hover:bg-background/10 transition-colors" />
+          </button>
+        ))}
       </div>
 
       {/* Lightbox */}
@@ -605,7 +590,7 @@ const GalleryFromImages = ({ images }: { images: string[] }) => {
           <p className="absolute bottom-6 text-xs text-muted-foreground">{lightboxIndex + 1} / {images.length}</p>
         </div>
       )}
-    </section>
+    </div>
   );
 };
 
