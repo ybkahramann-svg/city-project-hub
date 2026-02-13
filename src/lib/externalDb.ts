@@ -24,6 +24,7 @@ export interface Project {
   impact_stat?: string;
   latitude?: number;
   longitude?: number;
+  gallery_images?: string[] | null;
   created_at?: string;
 }
 
