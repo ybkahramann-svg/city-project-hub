@@ -2,6 +2,9 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Project } from '@/lib/externalDb';
 
 interface CommandCenterMapProps {
@@ -22,26 +25,6 @@ const STATUS_GLOW: Record<string, string> = {
 
 const DEFAULT_CENTER: [number, number] = [36.9200, 30.7000];
 
-// Approximate Kepez district boundary polygon
-const KEPEZ_BOUNDARY: [number, number][] = [
-  [36.975, 30.620],
-  [36.980, 30.660],
-  [36.975, 30.700],
-  [36.965, 30.740],
-  [36.950, 30.770],
-  [36.930, 30.785],
-  [36.905, 30.780],
-  [36.885, 30.760],
-  [36.870, 30.730],
-  [36.865, 30.690],
-  [36.870, 30.650],
-  [36.885, 30.620],
-  [36.905, 30.600],
-  [36.930, 30.595],
-  [36.950, 30.600],
-  [36.975, 30.620],
-];
-
 const getCoords = (project: Project): [number, number] => {
   if (project.latitude && project.longitude) {
     return [project.latitude, project.longitude];
@@ -49,9 +32,53 @@ const getCoords = (project: Project): [number, number] => {
   return DEFAULT_CENTER;
 };
 
+const getDominantStatus = (markers: L.Marker[]): string => {
+  const counts: Record<string, number> = {};
+  markers.forEach(m => {
+    const status = (m.options as any).statusType || 'In Progress';
+    counts[status] = (counts[status] || 0) + 1;
+  });
+  let dominant = 'In Progress';
+  let max = 0;
+  for (const [status, count] of Object.entries(counts)) {
+    if (count > max) { max = count; dominant = status; }
+  }
+  return dominant;
+};
+
+const createClusterIcon = (cluster: any) => {
+  const childMarkers = cluster.getAllChildMarkers();
+  const count = cluster.getChildCount();
+  const dominant = getDominantStatus(childMarkers);
+  const color = STATUS_COLORS[dominant] || '#EAB308';
+
+  const size = count < 10 ? 36 : count < 50 ? 44 : 52;
+
+  return L.divIcon({
+    html: `<div style="
+      width:${size}px;height:${size}px;
+      display:flex;align-items:center;justify-content:center;
+      background:${color}22;
+      border:2px solid ${color};
+      border-radius:50%;
+      color:${color};
+      font-weight:700;
+      font-size:${count < 10 ? 13 : 12}px;
+      font-family:system-ui,sans-serif;
+      box-shadow:0 0 12px ${color}44, inset 0 0 8px ${color}11;
+      backdrop-filter:blur(4px);
+      cursor:pointer;
+      transition:transform 0.2s;
+    ">${count}</div>`,
+    className: 'custom-cluster-icon',
+    iconSize: L.point(size, size),
+  });
+};
+
 export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
+  const clusterGroupRef = useRef<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,14 +97,24 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Kepez district boundary
-    L.polygon(KEPEZ_BOUNDARY, {
-      color: 'rgba(234,179,8,0.18)',
-      weight: 1.5,
-      fillColor: 'rgba(234,179,8,0.04)',
-      fillOpacity: 1,
-      dashArray: '6 4',
-    }).addTo(map);
+    // Load real Kepez GeoJSON boundary
+    fetch('/kepez-boundary.geojson')
+      .then(r => r.json())
+      .then(data => {
+        L.geoJSON(data, {
+          style: {
+            color: '#EAB308',
+            weight: 2,
+            opacity: 0.6,
+            fillColor: '#EAB308',
+            fillOpacity: 0.03,
+            dashArray: '6 3',
+          },
+        }).addTo(map);
+      })
+      .catch(() => {
+        // Silently fail if boundary data unavailable
+      });
 
     mapInstance.current = map;
 
@@ -91,33 +128,47 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
     const map = mapInstance.current;
     if (!map) return;
 
-    // Clear existing markers
-    map.eachLayer((layer) => {
-      if (layer instanceof L.CircleMarker) map.removeLayer(layer);
+    // Remove previous cluster group
+    if (clusterGroupRef.current) {
+      map.removeLayer(clusterGroupRef.current);
+    }
+
+    const clusterGroup = (L as any).markerClusterGroup({
+      maxClusterRadius: 50,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: createClusterIcon,
+      animate: true,
     });
 
-    // Fit bounds to all project markers if available
-    const validCoords = projects
-      .filter(p => p.latitude && p.longitude)
-      .map(p => [p.latitude!, p.longitude!] as [number, number]);
-
-    if (validCoords.length > 1) {
-      map.fitBounds(L.latLngBounds(validCoords).pad(0.15), { maxZoom: 14 });
-    }
+    const validCoords: [number, number][] = [];
 
     projects.forEach((project) => {
       const [lat, lng] = getCoords(project);
       const color = STATUS_COLORS[project.status] || '#EAB308';
-      const glow = STATUS_GLOW[project.status] || 'none';
 
-      const marker = L.circleMarker([lat, lng], {
-        radius: 5,
-        fillColor: color,
-        fillOpacity: 0.9,
-        color: 'rgba(255,255,255,0.5)',
-        weight: 1.5,
-        opacity: 1,
-      }).addTo(map);
+      if (project.latitude && project.longitude) {
+        validCoords.push([lat, lng]);
+      }
+
+      const icon = L.divIcon({
+        html: `<div style="
+          width:12px;height:12px;
+          background:${color};
+          border:2px solid rgba(255,255,255,0.6);
+          border-radius:50%;
+          box-shadow:${STATUS_GLOW[project.status] || 'none'};
+        "></div>`,
+        className: 'custom-pin-icon',
+        iconSize: L.point(12, 12),
+        iconAnchor: L.point(6, 6),
+      });
+
+      const marker = L.marker([lat, lng], {
+        icon,
+        statusType: project.status,
+      } as any);
 
       const progress = project.progress ?? 0;
       marker.bindTooltip(
@@ -130,7 +181,15 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
       );
 
       marker.on('click', () => navigate(`/project/${project.id}`));
+      clusterGroup.addLayer(marker);
     });
+
+    map.addLayer(clusterGroup);
+    clusterGroupRef.current = clusterGroup;
+
+    if (validCoords.length > 1) {
+      map.fitBounds(L.latLngBounds(validCoords).pad(0.15), { maxZoom: 14 });
+    }
   }, [projects, navigate]);
 
   return (
@@ -163,6 +222,11 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
           border-color: hsl(220 20% 20%) !important;
         }
         .leaflet-control-zoom a:hover { background: hsl(220 20% 20%) !important; }
+        .custom-cluster-icon { background: transparent !important; border: none !important; }
+        .custom-pin-icon { background: transparent !important; border: none !important; }
+        .marker-cluster-anim .custom-cluster-icon div {
+          transition: transform 0.3s ease;
+        }
       `}</style>
     </div>
   );
