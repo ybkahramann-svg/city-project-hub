@@ -52,23 +52,29 @@ const createClusterIcon = (cluster: any) => {
   const dominant = getDominantStatus(childMarkers);
   const color = STATUS_COLORS[dominant] || '#EAB308';
 
-  const size = count < 10 ? 36 : count < 50 ? 44 : 52;
+  // Dynamic sizing: small / medium / large
+  const size = count < 10 ? 30 : count <= 40 ? 45 : 60;
+  const fontSize = count < 10 ? 11 : count <= 40 ? 13 : 15;
+  const opacity = count > 40 ? 0.65 : 0.8;
+  const borderWidth = 1;
 
   return L.divIcon({
     html: `<div style="
       width:${size}px;height:${size}px;
       display:flex;align-items:center;justify-content:center;
-      background:${color}22;
-      border:2px solid ${color};
+      background:${color}${count > 40 ? '18' : '28'};
+      backdrop-filter:blur(4px);
+      -webkit-backdrop-filter:blur(4px);
+      border:${borderWidth}px solid ${color}aa;
       border-radius:50%;
       color:${color};
+      opacity:${opacity};
       font-weight:700;
-      font-size:${count < 10 ? 13 : 12}px;
+      font-size:${fontSize}px;
       font-family:system-ui,sans-serif;
-      box-shadow:0 0 12px ${color}44, inset 0 0 8px ${color}11;
-      backdrop-filter:blur(4px);
+      box-shadow:0 0 10px ${color}33;
       cursor:pointer;
-      transition:transform 0.2s;
+      transition:transform 0.2s, opacity 0.2s;
     ">${count}</div>`,
     className: 'custom-cluster-icon',
     iconSize: L.point(size, size),
