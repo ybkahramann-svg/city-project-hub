@@ -97,11 +97,11 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Load real Kepez GeoJSON boundary
+    // Load real Kepez GeoJSON boundary and fit map to it
     fetch('/kepez-boundary.geojson')
       .then(r => r.json())
       .then(data => {
-        L.geoJSON(data, {
+        const boundaryLayer = L.geoJSON(data, {
           style: {
             color: '#EAB308',
             weight: 2,
@@ -111,10 +111,10 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
             dashArray: '6 3',
           },
         }).addTo(map);
+        // Center map on the real boundary
+        map.fitBounds(boundaryLayer.getBounds().pad(0.05), { maxZoom: 13 });
       })
-      .catch(() => {
-        // Silently fail if boundary data unavailable
-      });
+      .catch(() => {});
 
     mapInstance.current = map;
 
@@ -142,15 +142,9 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
       animate: true,
     });
 
-    const validCoords: [number, number][] = [];
-
     projects.forEach((project) => {
       const [lat, lng] = getCoords(project);
       const color = STATUS_COLORS[project.status] || '#EAB308';
-
-      if (project.latitude && project.longitude) {
-        validCoords.push([lat, lng]);
-      }
 
       const icon = L.divIcon({
         html: `<div style="
@@ -187,9 +181,7 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
     map.addLayer(clusterGroup);
     clusterGroupRef.current = clusterGroup;
 
-    if (validCoords.length > 1) {
-      map.fitBounds(L.latLngBounds(validCoords).pad(0.15), { maxZoom: 14 });
-    }
+    // Boundary fitBounds handles viewport — no marker-based fitBounds needed
   }, [projects, navigate]);
 
   return (
