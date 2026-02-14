@@ -87,8 +87,11 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
     const map = L.map(mapRef.current, {
       center: DEFAULT_CENTER,
       zoom: 12,
+      minZoom: 3,
+      maxZoom: 18,
       zoomControl: false,
       attributionControl: false,
+      preferCanvas: true,
     });
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -134,15 +137,20 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
     }
 
     const clusterGroup = (L as any).markerClusterGroup({
-      maxClusterRadius: 50,
+      maxClusterRadius: 60,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
       zoomToBoundsOnClick: true,
       iconCreateFunction: createClusterIcon,
       animate: true,
+      disableClusteringAtZoom: 16,
+      removeOutsideVisibleBounds: false,
     });
 
     projects.forEach((project) => {
+      // Only render markers for projects with real coordinates
+      if (!project.latitude || !project.longitude) return;
+
       const [lat, lng] = getCoords(project);
       const color = STATUS_COLORS[project.status] || '#EAB308';
 
