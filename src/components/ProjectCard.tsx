@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { Project } from '@/lib/externalDb';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { MapPin, CheckCircle2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { MapPin, CheckCircle2, Network } from 'lucide-react';
 import { ProjectImage } from './ProjectImage';
 
 interface ProjectCardProps {
@@ -58,6 +59,11 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
             alt={project.title}
             className="group-hover:scale-110 transition-transform duration-300"
           />
+          {project.is_umbrella && (
+            <Badge className="absolute top-2 left-2 bg-accent/80 text-accent-foreground border-accent/40 text-[10px] gap-1 backdrop-blur-sm">
+              <Network className="w-3 h-3" /> Ağ Projesi
+            </Badge>
+          )}
         </div>
 
         {/* Content — flex-grow middle, sticky footer */}
