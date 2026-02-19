@@ -24,8 +24,8 @@ const DEFAULT_CENTER: [number, number] = [36.9200, 30.7000];
 
 // Kepez/Antalya region bounds for locking viewport
 const KEPEZ_BOUNDS: L.LatLngBoundsExpression = [
-  [36.82, 30.55],  // SW
-  [37.05, 30.82],  // NE
+  [36.70, 30.40],  // SW — relaxed
+  [37.15, 30.95],  // NE — relaxed
 ];
 
 /** Calculate pin size based on zoom level */
@@ -77,7 +77,7 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
     const map = L.map(mapRef.current, {
       center: DEFAULT_CENTER,
       zoom: 12,
-      minZoom: 11,
+      minZoom: 9,
       maxZoom: 18,
       maxBounds: L.latLngBounds(KEPEZ_BOUNDS),
       maxBoundsViscosity: 1.0,
@@ -170,7 +170,7 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
     // Fit to project data on load
     if (validCoords.length > 0) {
       const bounds = L.latLngBounds(validCoords.map(c => L.latLng(c[0], c[1])));
-      map.fitBounds(bounds.pad(0.1), { maxZoom: 13 });
+      map.fitBounds(bounds.pad(0.15), { maxZoom: 13, padding: [50, 50] });
     }
   }, [projects, navigate]);
 
