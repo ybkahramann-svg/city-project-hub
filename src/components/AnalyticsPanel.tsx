@@ -20,9 +20,9 @@ export const AnalyticsPanel = ({ projects }: AnalyticsPanelProps) => {
   const total = projects.length;
 
   const statusBars = [
-    { label: 'Completed', count: completed, color: 'bg-green-500', pct: total ? (completed / total) * 100 : 0 },
-    { label: 'In Progress', count: inProgress, color: 'bg-yellow-500', pct: total ? (inProgress / total) * 100 : 0 },
-    { label: 'Planned', count: planned, color: 'bg-red-400', pct: total ? (planned / total) * 100 : 0 },
+    { label: 'Tamamlandı', count: completed, color: 'bg-green-500', pct: total ? (completed / total) * 100 : 0 },
+    { label: 'Devam Ediyor', count: inProgress, color: 'bg-yellow-500', pct: total ? (inProgress / total) * 100 : 0 },
+    { label: 'Planlanıyor', count: planned, color: 'bg-red-400', pct: total ? (planned / total) * 100 : 0 },
   ];
 
   return (
@@ -30,7 +30,7 @@ export const AnalyticsPanel = ({ projects }: AnalyticsPanelProps) => {
       {/* Header */}
       <div className="px-4 py-3 border-b border-border/30 flex items-center gap-2">
         <BarChart3 className="w-4 h-4 text-accent" />
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Global Analytics</h3>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Genel Analiz</h3>
       </div>
 
       {/* Stats */}
@@ -40,28 +40,28 @@ export const AnalyticsPanel = ({ projects }: AnalyticsPanelProps) => {
           <div className="rounded-lg bg-secondary/40 p-3 border border-border/20">
             <div className="flex items-center gap-2 mb-1">
               <FolderKanban className="w-3.5 h-3.5 text-accent" />
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Projects</span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Projeler</span>
             </div>
             <p className="text-2xl font-bold text-foreground">{total}</p>
           </div>
           <div className="rounded-lg bg-secondary/40 p-3 border border-border/20">
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp className="w-3.5 h-3.5 text-accent" />
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Budget</span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Bütçe</span>
             </div>
             <p className="text-2xl font-bold text-accent">{formatBudget(totalBudget)}</p>
           </div>
           <div className="rounded-lg bg-secondary/40 p-3 border border-border/20">
             <div className="flex items-center gap-2 mb-1">
               <HardHat className="w-3.5 h-3.5 text-yellow-500" />
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Active</span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Aktif</span>
             </div>
             <p className="text-2xl font-bold text-foreground">{inProgress}</p>
           </div>
           <div className="rounded-lg bg-secondary/40 p-3 border border-border/20">
             <div className="flex items-center gap-2 mb-1">
               <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Done</span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Biten</span>
             </div>
             <p className="text-2xl font-bold text-foreground">{completed}</p>
           </div>
@@ -69,7 +69,7 @@ export const AnalyticsPanel = ({ projects }: AnalyticsPanelProps) => {
 
         {/* Status Distribution */}
         <div className="space-y-3">
-          <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status Distribution</h4>
+          <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Durum Dağılımı</h4>
           {statusBars.map((s) => (
             <div key={s.label} className="space-y-1">
               <div className="flex justify-between text-xs">

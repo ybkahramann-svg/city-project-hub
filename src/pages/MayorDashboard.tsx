@@ -3,26 +3,50 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, Bell } from 'lucide-react';
 import { ProjectCarousel } from '@/components/ProjectCarousel';
 import { CategoryView } from '@/components/CategoryView';
-import { DashboardFilters } from '@/components/DashboardFilters';
+import { DashboardFilters, SortOption } from '@/components/DashboardFilters';
 import { CommandCenterMap } from '@/components/CommandCenterMap';
 import { AnalyticsPanel } from '@/components/AnalyticsPanel';
 import { useProjects } from '@/hooks/useProjects';
+import { Project } from '@/lib/externalDb';
 
 type ViewMode = 'projects' | 'categories';
 type StatusFilter = '' | 'In Progress' | 'Completed' | 'Planned';
 
 const MOCK_NOTIFICATIONS = [
-  { id: 1, text: 'Ahmet Yılmaz updated Science Center', projectId: '1', read: false },
-  { id: 2, text: 'Park Project marked as completed', projectId: '2', read: false },
-  { id: 3, text: 'New budget approved for Altyapı', projectId: '3', read: true },
-  { id: 4, text: 'Fen İşleri inspection scheduled', projectId: '4', read: false },
+  { id: 1, text: 'Ahmet Yılmaz Bilim Merkezi projesini güncelledi', projectId: '1', read: false },
+  { id: 2, text: 'Park Projesi tamamlandı olarak işaretlendi', projectId: '2', read: false },
+  { id: 3, text: 'Altyapı için yeni bütçe onaylandı', projectId: '3', read: true },
+  { id: 4, text: 'Fen İşleri denetimi planlandı', projectId: '4', read: false },
 ];
+
+const sortProjects = (projects: Project[], sort: SortOption): Project[] => {
+  const sorted = [...projects];
+  switch (sort) {
+    case 'az':
+      return sorted.sort((a, b) => a.title.localeCompare(b.title, 'tr'));
+    case 'za':
+      return sorted.sort((a, b) => b.title.localeCompare(a.title, 'tr'));
+    case 'newest':
+      return sorted.sort((a, b) => {
+        const da = a.completion_date || a.created_at || '';
+        const db = b.completion_date || b.created_at || '';
+        return db.localeCompare(da);
+      });
+    case 'budget_desc':
+      return sorted.sort((a, b) => (b.budget || 0) - (a.budget || 0));
+    case 'budget_asc':
+      return sorted.sort((a, b) => (a.budget || 0) - (b.budget || 0));
+    default:
+      return sorted;
+  }
+};
 
 export const MayorDashboard = () => {
   const navigate = useNavigate();
   const { data: projects = [], isLoading } = useProjects();
   const [viewMode, setViewMode] = useState<ViewMode>('projects');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('');
+  const [sort, setSort] = useState<SortOption>('newest');
 
   const [search, setSearch] = useState('');
   const [district, setDistrict] = useState('');
@@ -64,8 +88,8 @@ export const MayorDashboard = () => {
     if (statusFilter) result = result.filter((p) => p.status === statusFilter);
     if (district) result = result.filter((p) => p.district === district);
     if (neighborhood) result = result.filter((p) => p.neighborhood === neighborhood);
-    return result;
-  }, [projects, search, statusFilter, district, neighborhood]);
+    return sortProjects(result, sort);
+  }, [projects, search, statusFilter, district, neighborhood, sort]);
 
   const inProgress = filtered.filter((p) => p.status === 'In Progress');
   const completed = filtered.filter((p) => p.status === 'Completed');
@@ -81,7 +105,7 @@ export const MayorDashboard = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-border border-t-accent rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">Loading projects...</p>
+          <p className="text-muted-foreground">Projeler yükleniyor...</p>
         </div>
       </div>
     );
@@ -138,7 +162,7 @@ export const MayorDashboard = () => {
                 {notifOpen && (
                   <div className="absolute right-0 mt-2 w-80 rounded-lg border border-border bg-popover shadow-xl z-50">
                     <div className="p-3 border-b border-border">
-                      <h4 className="text-sm font-semibold text-foreground">Notifications</h4>
+                      <h4 className="text-sm font-semibold text-foreground">Bildirimler</h4>
                     </div>
                     <div className="max-h-64 overflow-y-auto">
                       {notifications.map((n) => (
@@ -170,14 +194,14 @@ export const MayorDashboard = () => {
                 {profileOpen && (
                   <div className="absolute right-0 mt-2 w-44 rounded-lg border border-border bg-popover shadow-xl z-50">
                     <button className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-secondary/60 transition-colors rounded-t-lg">
-                      Profile
+                      Profil
                     </button>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-secondary/60 transition-colors rounded-b-lg flex items-center gap-2"
                     >
                       <LogOut className="w-3.5 h-3.5" />
-                      Logout
+                      Çıkış Yap
                     </button>
                   </div>
                 )}
@@ -198,6 +222,8 @@ export const MayorDashboard = () => {
             onDistrictChange={setDistrict}
             neighborhood={neighborhood}
             onNeighborhoodChange={setNeighborhood}
+            sort={sort}
+            onSortChange={setSort}
           />
         </div>
       </div>
@@ -228,8 +254,8 @@ export const MayorDashboard = () => {
             {filtered.length === 0 && (
               <div className="text-center py-20 space-y-4">
                 <p className="text-3xl">📋</p>
-                <h3 className="text-xl font-semibold text-foreground">No projects found</h3>
-                <p className="text-muted-foreground">Try adjusting your search or filters</p>
+                <h3 className="text-xl font-semibold text-foreground">Proje bulunamadı</h3>
+                <p className="text-muted-foreground">Arama veya filtreleri değiştirmeyi deneyin</p>
               </div>
             )}
           </section>

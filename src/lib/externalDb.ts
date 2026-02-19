@@ -27,6 +27,7 @@ export interface Project {
   gallery_images?: string[] | null;
   is_umbrella?: boolean;
   sub_locations?: { name: string; status: string; lat: number; lng: number }[] | null;
+  completion_date?: string;
   created_at?: string;
 }
 
