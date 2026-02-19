@@ -1,10 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet.markercluster';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Project } from '@/lib/externalDb';
 
 interface CommandCenterMapProps {
@@ -25,67 +22,54 @@ const STATUS_GLOW: Record<string, string> = {
 
 const DEFAULT_CENTER: [number, number] = [36.9200, 30.7000];
 
-const getCoords = (project: Project): [number, number] => {
-  if (project.latitude && project.longitude) {
-    return [project.latitude, project.longitude];
-  }
-  return DEFAULT_CENTER;
+// Kepez/Antalya region bounds for locking viewport
+const KEPEZ_BOUNDS: L.LatLngBoundsExpression = [
+  [36.82, 30.55],  // SW
+  [37.05, 30.82],  // NE
+];
+
+/** Calculate pin size based on zoom level */
+const getPinSize = (zoom: number): { size: number; border: number; glow: boolean } => {
+  if (zoom <= 11) return { size: 4, border: 0, glow: true };
+  if (zoom <= 12) return { size: 6, border: 1, glow: true };
+  if (zoom <= 13) return { size: 8, border: 1, glow: true };
+  if (zoom <= 14) return { size: 10, border: 2, glow: true };
+  return { size: 14, border: 2, glow: true };
 };
 
-const getDominantStatus = (markers: L.Marker[]): string => {
-  const counts: Record<string, number> = {};
-  markers.forEach(m => {
-    const status = (m.options as any).statusType || 'In Progress';
-    counts[status] = (counts[status] || 0) + 1;
-  });
-  let dominant = 'In Progress';
-  let max = 0;
-  for (const [status, count] of Object.entries(counts)) {
-    if (count > max) { max = count; dominant = status; }
-  }
-  return dominant;
-};
-
-const createClusterIcon = (cluster: any) => {
-  const childMarkers = cluster.getAllChildMarkers();
-  const count = cluster.getChildCount();
-  const dominant = getDominantStatus(childMarkers);
-  const color = STATUS_COLORS[dominant] || '#EAB308';
-
-  // Dynamic sizing: small / medium / large
-  const size = count < 10 ? 30 : count <= 40 ? 45 : 60;
-  const fontSize = count < 10 ? 11 : count <= 40 ? 13 : 15;
-  const opacity = count > 40 ? 0.65 : 0.8;
-  const borderWidth = 1;
+const createPinIcon = (color: string, status: string, zoom: number) => {
+  const { size, border, glow } = getPinSize(zoom);
+  const shadow = glow ? STATUS_GLOW[status] || 'none' : 'none';
+  const borderStyle = border > 0 ? `border:${border}px solid rgba(255,255,255,0.6);` : '';
 
   return L.divIcon({
     html: `<div style="
       width:${size}px;height:${size}px;
-      display:flex;align-items:center;justify-content:center;
-      background:${color}${count > 40 ? '18' : '28'};
-      backdrop-filter:blur(4px);
-      -webkit-backdrop-filter:blur(4px);
-      border:${borderWidth}px solid ${color}aa;
+      background:${color};
+      ${borderStyle}
       border-radius:50%;
-      color:${color};
-      opacity:${opacity};
-      font-weight:700;
-      font-size:${fontSize}px;
-      font-family:system-ui,sans-serif;
-      box-shadow:0 0 10px ${color}33;
-      cursor:pointer;
-      transition:transform 0.2s, opacity 0.2s;
-    ">${count}</div>`,
-    className: 'custom-cluster-icon',
+      box-shadow:${shadow};
+      transition:width 0.25s,height 0.25s;
+    "></div>`,
+    className: 'custom-pin-icon',
     iconSize: L.point(size, size),
+    iconAnchor: L.point(size / 2, size / 2),
   });
 };
 
 export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
-  const clusterGroupRef = useRef<any>(null);
+  const markersRef = useRef<{ marker: L.Marker; color: string; status: string }[]>([]);
+  const markerLayerRef = useRef<L.LayerGroup | null>(null);
   const navigate = useNavigate();
+
+  // Resize all pins when zoom changes
+  const updatePinSizes = useCallback((zoom: number) => {
+    markersRef.current.forEach(({ marker, color, status }) => {
+      marker.setIcon(createPinIcon(color, status, zoom));
+    });
+  }, []);
 
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
@@ -93,8 +77,10 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
     const map = L.map(mapRef.current, {
       center: DEFAULT_CENTER,
       zoom: 12,
-      minZoom: 3,
+      minZoom: 11,
       maxZoom: 18,
+      maxBounds: L.latLngBounds(KEPEZ_BOUNDS),
+      maxBoundsViscosity: 1.0,
       zoomControl: false,
       attributionControl: false,
       preferCanvas: true,
@@ -106,11 +92,11 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Load real Kepez GeoJSON boundary and fit map to it
+    // Load Kepez GeoJSON boundary
     fetch('/kepez-boundary.geojson')
       .then(r => r.json())
       .then(data => {
-        const boundaryLayer = L.geoJSON(data, {
+        L.geoJSON(data, {
           style: {
             color: '#EAB308',
             weight: 2,
@@ -120,10 +106,13 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
             dashArray: '6 3',
           },
         }).addTo(map);
-        // Center map on the real boundary
-        map.fitBounds(boundaryLayer.getBounds().pad(0.05), { maxZoom: 13 });
       })
       .catch(() => {});
+
+    // Dynamic pin scaling on zoom
+    map.on('zoomend', () => {
+      updatePinSizes(map.getZoom());
+    });
 
     mapInstance.current = map;
 
@@ -131,51 +120,32 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
       map.remove();
       mapInstance.current = null;
     };
-  }, []);
+  }, [updatePinSizes]);
 
   useEffect(() => {
     const map = mapInstance.current;
     if (!map) return;
 
-    // Remove previous cluster group
-    if (clusterGroupRef.current) {
-      map.removeLayer(clusterGroupRef.current);
+    // Remove previous markers
+    if (markerLayerRef.current) {
+      map.removeLayer(markerLayerRef.current);
     }
+    markersRef.current = [];
 
-    const clusterGroup = (L as any).markerClusterGroup({
-      maxClusterRadius: 60,
-      spiderfyOnMaxZoom: true,
-      showCoverageOnHover: false,
-      zoomToBoundsOnClick: true,
-      iconCreateFunction: createClusterIcon,
-      animate: true,
-      disableClusteringAtZoom: 16,
-      removeOutsideVisibleBounds: false,
-    });
+    const layerGroup = L.layerGroup();
+    const currentZoom = map.getZoom();
+    const validCoords: [number, number][] = [];
 
     projects.forEach((project) => {
-      // Only render markers for projects with real coordinates
       if (!project.latitude || !project.longitude) return;
 
-      const [lat, lng] = getCoords(project);
+      const lat = project.latitude;
+      const lng = project.longitude;
       const color = STATUS_COLORS[project.status] || '#EAB308';
 
-      const icon = L.divIcon({
-        html: `<div style="
-          width:12px;height:12px;
-          background:${color};
-          border:2px solid rgba(255,255,255,0.6);
-          border-radius:50%;
-          box-shadow:${STATUS_GLOW[project.status] || 'none'};
-        "></div>`,
-        className: 'custom-pin-icon',
-        iconSize: L.point(12, 12),
-        iconAnchor: L.point(6, 6),
-      });
-
       const marker = L.marker([lat, lng], {
-        icon,
-        statusType: project.status,
+        icon: createPinIcon(color, project.status, currentZoom),
+        pane: 'markerPane',
       } as any);
 
       const progress = project.progress ?? 0;
@@ -189,13 +159,19 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
       );
 
       marker.on('click', () => navigate(`/project/${project.id}`));
-      clusterGroup.addLayer(marker);
+      layerGroup.addLayer(marker);
+      markersRef.current.push({ marker, color, status: project.status });
+      validCoords.push([lat, lng]);
     });
 
-    map.addLayer(clusterGroup);
-    clusterGroupRef.current = clusterGroup;
+    layerGroup.addTo(map);
+    markerLayerRef.current = layerGroup;
 
-    // Boundary fitBounds handles viewport — no marker-based fitBounds needed
+    // Fit to project data on load
+    if (validCoords.length > 0) {
+      const bounds = L.latLngBounds(validCoords.map(c => L.latLng(c[0], c[1])));
+      map.fitBounds(bounds.pad(0.1), { maxZoom: 13 });
+    }
   }, [projects, navigate]);
 
   return (
@@ -228,11 +204,7 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
           border-color: hsl(220 20% 20%) !important;
         }
         .leaflet-control-zoom a:hover { background: hsl(220 20% 20%) !important; }
-        .custom-cluster-icon { background: transparent !important; border: none !important; }
         .custom-pin-icon { background: transparent !important; border: none !important; }
-        .marker-cluster-anim .custom-cluster-icon div {
-          transition: transform 0.3s ease;
-        }
       `}</style>
     </div>
   );
