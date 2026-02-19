@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,11 +31,13 @@ import {
   Phone,
   Mail,
   MessageCircle,
+  Network,
 } from 'lucide-react';
 import { format, differenceInDays, parseISO, differenceInCalendarDays } from 'date-fns';
 import { toast } from 'sonner';
 import { ProjectImage } from '@/components/ProjectImage';
 import { GalleryLightbox } from '@/components/GalleryLightbox';
+import L from 'leaflet';
 
 type Tab = 'overview' | 'map' | 'gallery';
 
@@ -385,6 +387,69 @@ const ProjectDetail = () => {
                 <p className="text-foreground/80 leading-relaxed text-base max-w-3xl">
                   {project.description || 'Açıklama bulunmuyor.'}
                 </p>
+
+                {/* Umbrella Project: Status Summary + Sub-Locations */}
+                {project.is_umbrella && project.sub_locations && project.sub_locations.length > 0 && (() => {
+                  const subs = project.sub_locations as { name: string; status: string; lat: number; lng: number }[];
+                  const completed = subs.filter(s => s.status === 'Completed').length;
+                  const inProgress = subs.filter(s => s.status === 'In Progress').length;
+                  const planned = subs.filter(s => s.status === 'Planned').length;
+                  return (
+                    <>
+                      {/* Status Summary Bar */}
+                      <div className="rounded-xl border border-border/30 bg-card/60 backdrop-blur-xl p-4 flex flex-wrap items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <Network className="w-4 h-4 text-accent" />
+                          <span className="text-sm font-bold text-foreground">Toplam: {subs.length} Nokta</span>
+                        </div>
+                        <div className="h-4 w-px bg-border/40" />
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-green-400" />
+                          <span className="text-xs text-muted-foreground">{completed} Tamamlandı</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-amber-400" />
+                          <span className="text-xs text-muted-foreground">{inProgress} Devam Ediyor</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-blue-400" />
+                          <span className="text-xs text-muted-foreground">{planned} Planlanmış</span>
+                        </div>
+                      </div>
+
+                      {/* Sub-Locations Grid */}
+                      <div className="space-y-3">
+                        <h4 className="text-base font-bold text-foreground flex items-center gap-2">
+                          <Network className="w-4 h-4 text-accent" /> Proje Ağ Noktaları
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {subs.map((sub, i) => {
+                            const statusConfig: Record<string, { bg: string; text: string; dot: string; label: string }> = {
+                              'Completed': { bg: 'bg-green-500/10', text: 'text-green-400', dot: 'bg-green-400', label: 'Tamamlandı' },
+                              'In Progress': { bg: 'bg-amber-500/10', text: 'text-amber-400', dot: 'bg-amber-400', label: 'Devam Ediyor' },
+                              'Planned': { bg: 'bg-blue-500/10', text: 'text-blue-400', dot: 'bg-blue-400', label: 'Planlanmış' },
+                            };
+                            const cfg = statusConfig[sub.status] || statusConfig['Planned'];
+                            return (
+                              <div key={i} className="rounded-lg border border-border/30 bg-card/50 backdrop-blur-sm p-3 flex items-center gap-3 hover:border-accent/30 transition-colors">
+                                <div className={`w-8 h-8 rounded-lg ${cfg.bg} flex items-center justify-center flex-shrink-0`}>
+                                  <MapPin className={`w-4 h-4 ${cfg.text}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-foreground truncate">{sub.name}</p>
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                                    <span className={`text-[10px] font-semibold ${cfg.text}`}>{cfg.label}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             )}
 
@@ -402,24 +467,7 @@ const ProjectDetail = () => {
                     <Navigation className="w-4 h-4" /> Yol Tarifi
                   </Button>
                 </div>
-                <div className="rounded-xl border border-border/30 bg-background/60 h-[350px] flex items-center justify-center relative overflow-hidden">
-                  <div className="absolute inset-0 opacity-10">
-                    {Array.from({ length: 12 }).map((_, i) => (
-                      <div key={`h${i}`} className="absolute w-full border-t border-accent/30" style={{ top: `${(i + 1) * 8}%` }} />
-                    ))}
-                    {Array.from({ length: 12 }).map((_, i) => (
-                      <div key={`v${i}`} className="absolute h-full border-l border-accent/30" style={{ left: `${(i + 1) * 8}%` }} />
-                    ))}
-                  </div>
-                  <div className="flex flex-col items-center gap-2 z-10">
-                    <div className="w-10 h-10 rounded-full bg-accent/20 border-2 border-accent flex items-center justify-center animate-pulse">
-                      <MapPin className="w-5 h-5 text-accent" />
-                    </div>
-                    <span className="text-xs text-muted-foreground font-medium bg-background/80 px-3 py-1 rounded-full">
-                      {project.district || 'İlçe'}, {project.neighborhood || 'Mahalle'}
-                    </span>
-                  </div>
-                </div>
+                <DetailMap project={project} />
               </div>
             )}
 
@@ -517,6 +565,77 @@ const ProjectDetail = () => {
 
       </div>
     </div>
+  );
+};
+
+/* Detail Map component - renders real Leaflet map with sub-location pins for umbrella projects */
+const DetailMap = ({ project }: { project: any }) => {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    const isUmbrella = project.is_umbrella && project.sub_locations && project.sub_locations.length > 0;
+    const subs: { name: string; status: string; lat: number; lng: number }[] = isUmbrella ? project.sub_locations : [];
+
+    const map = L.map(mapContainerRef.current, {
+      preferCanvas: true,
+      zoomControl: true,
+      attributionControl: false,
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+    }).addTo(map);
+
+    const statusColors: Record<string, string> = {
+      'Completed': '#34d399',
+      'In Progress': '#fbbf24',
+      'Planned': '#60a5fa',
+    };
+
+    const createPin = (lat: number, lng: number, color: string, label: string) => {
+      const icon = L.divIcon({
+        className: 'custom-detail-pin',
+        html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,0.8);box-shadow:0 0 8px ${color}80;"></div>`,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6],
+      });
+      return L.marker([lat, lng], { icon }).bindPopup(`<b style="color:#fff">${label}</b>`, {
+        className: 'dark-popup',
+      });
+    };
+
+    if (isUmbrella) {
+      const bounds: [number, number][] = [];
+      subs.forEach(sub => {
+        if (!sub.lat || !sub.lng) return;
+        const color = statusColors[sub.status] || '#60a5fa';
+        createPin(sub.lat, sub.lng, color, sub.name).addTo(map);
+        bounds.push([sub.lat, sub.lng]);
+      });
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+      } else {
+        map.setView([36.95, 30.65], 13);
+      }
+    } else {
+      const lat = project.latitude || 36.95;
+      const lng = project.longitude || 30.65;
+      const color = statusColors[project.status] || '#fbbf24';
+      createPin(lat, lng, color, project.title).addTo(map);
+      map.setView([lat, lng], 15);
+    }
+
+    return () => { map.remove(); };
+  }, [project]);
+
+  return (
+    <div
+      ref={mapContainerRef}
+      className="rounded-xl border border-border/30 bg-background/60 h-[350px] overflow-hidden"
+      style={{ zIndex: 0 }}
+    />
   );
 };
 
