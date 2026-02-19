@@ -10,6 +10,12 @@ interface ProjectCarouselProps {
   status: string;
 }
 
+const STATUS_TR: Record<string, string> = {
+  'In Progress': 'Devam Ediyor',
+  'Completed': 'Tamamlandı',
+  'Planned': 'Planlanıyor',
+};
+
 export const ProjectCarousel = ({ projects, title, status }: ProjectCarouselProps) => {
   const scrollContainer = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -56,12 +62,14 @@ export const ProjectCarousel = ({ projects, title, status }: ProjectCarouselProp
 
   if (projects.length === 0) return null;
 
+  const displayTitle = STATUS_TR[title] || title;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between px-2">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">{title}</h2>
-          <p className="text-sm text-muted-foreground mt-1">{projects.length} projects</p>
+          <h2 className="text-2xl font-bold text-foreground">{displayTitle}</h2>
+          <p className="text-sm text-muted-foreground mt-1">{projects.length} proje</p>
         </div>
         <div className="flex gap-2">
           <Button

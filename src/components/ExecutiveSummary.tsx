@@ -19,19 +19,19 @@ export const ExecutiveSummary = ({ projects }: ExecutiveSummaryProps) => {
 
   const cards = [
     {
-      label: 'TOTAL INVESTMENT',
+      label: 'TOPLAM YATIRIM',
       value: formatBudget(totalBudget),
       icon: TrendingUp,
       highlight: true,
     },
     {
-      label: 'ACTIVE SITES',
+      label: 'AKTİF ŞANTIYE',
       value: activeSites.toString(),
       icon: HardHat,
       highlight: false,
     },
     {
-      label: 'COMPLETED WORKS',
+      label: 'TAMAMLANAN İŞ',
       value: completedWorks.toString(),
       icon: CheckCircle,
       highlight: false,

@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
-import { Search } from 'lucide-react';
+import { Search, ArrowUpDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Project } from '@/lib/externalDb';
+
+export type SortOption = 'az' | 'za' | 'newest' | 'budget_desc' | 'budget_asc';
 
 interface DashboardFiltersProps {
   projects: Project[];
@@ -11,6 +13,8 @@ interface DashboardFiltersProps {
   onDistrictChange: (val: string) => void;
   neighborhood: string;
   onNeighborhoodChange: (val: string) => void;
+  sort: SortOption;
+  onSortChange: (val: SortOption) => void;
 }
 
 export const DashboardFilters = ({
@@ -21,6 +25,8 @@ export const DashboardFilters = ({
   onDistrictChange,
   neighborhood,
   onNeighborhoodChange,
+  sort,
+  onSortChange,
 }: DashboardFiltersProps) => {
   const districts = useMemo(
     () => [...new Set(projects.map((p) => p.district).filter(Boolean))].sort(),
@@ -48,7 +54,7 @@ export const DashboardFilters = ({
         <Input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search projects..."
+          placeholder="Proje Ara..."
           className="pl-9 bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-accent"
         />
       </div>
@@ -60,9 +66,9 @@ export const DashboardFilters = ({
           onDistrictChange(e.target.value);
           onNeighborhoodChange('');
         }}
-        className="px-3 py-2 bg-input/50 border border-border/50 rounded-md text-foreground text-sm focus:border-accent outline-none"
+        className="px-3 py-2 bg-card border border-border/50 rounded-md text-foreground text-sm focus:border-accent outline-none"
       >
-        <option value="">All Districts</option>
+        <option value="">Tüm İlçeler</option>
         {districts.map((d) => (
           <option key={d} value={d}>{d}</option>
         ))}
@@ -72,13 +78,29 @@ export const DashboardFilters = ({
       <select
         value={neighborhood}
         onChange={(e) => onNeighborhoodChange(e.target.value)}
-        className="px-3 py-2 bg-input/50 border border-border/50 rounded-md text-foreground text-sm focus:border-accent outline-none"
+        className="px-3 py-2 bg-card border border-border/50 rounded-md text-foreground text-sm focus:border-accent outline-none"
       >
-        <option value="">All Neighborhoods</option>
+        <option value="">Tüm Mahalleler</option>
         {neighborhoods.map((n) => (
           <option key={n} value={n}>{n}</option>
         ))}
       </select>
+
+      {/* Sort */}
+      <div className="flex items-center gap-1.5">
+        <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+        <select
+          value={sort}
+          onChange={(e) => onSortChange(e.target.value as SortOption)}
+          className="px-3 py-2 bg-card border border-border/50 rounded-md text-foreground text-sm focus:border-accent outline-none"
+        >
+          <option value="newest">Yeniden Eskiye</option>
+          <option value="az">A-Z</option>
+          <option value="za">Z-A</option>
+          <option value="budget_desc">Bütçe (Azalan)</option>
+          <option value="budget_asc">Bütçe (Artan)</option>
+        </select>
+      </div>
     </div>
   );
 };
