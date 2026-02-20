@@ -32,6 +32,7 @@ import {
   Mail,
   MessageCircle,
   Network,
+  CheckCircle2,
 } from 'lucide-react';
 import { format, differenceInDays, parseISO, differenceInCalendarDays } from 'date-fns';
 import { toast } from 'sonner';
@@ -202,10 +203,27 @@ const ProjectDetail = () => {
               <ArrowLeft className="w-4 h-4" /> Panele Dön
             </Button>
             <div className="flex items-center gap-3">
-              <div className={`w-2 h-2 rounded-full ${statusPulseMap[project.status] || 'bg-muted-foreground'} animate-pulse`} />
-              <Badge className={`text-xs font-semibold ${statusColorMap[project.status] || 'bg-muted/20 text-muted-foreground border-muted/30'}`}>
-                {project.status}
-              </Badge>
+              {project.status === 'Completed' ? (
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span className="text-xs text-muted-foreground font-medium">
+                    {project.completion_date ? (() => {
+                      try {
+                        const d = new Date(project.completion_date);
+                        const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+                        return `${months[d.getMonth()]} ${d.getFullYear()}`;
+                      } catch { return 'Tamamlandı'; }
+                    })() : 'Tamamlandı'}
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div className={`w-2 h-2 rounded-full ${statusPulseMap[project.status] || 'bg-muted-foreground'} animate-pulse`} />
+                  <Badge className={`text-xs font-semibold ${statusColorMap[project.status] || 'bg-muted/20 text-muted-foreground border-muted/30'}`}>
+                    {project.status === 'In Progress' ? 'Devam Ediyor' : project.status === 'Planned' ? 'Planlanıyor' : project.status}
+                  </Badge>
+                </>
+              )}
             </div>
           </div>
         </header>
@@ -228,10 +246,25 @@ const ProjectDetail = () => {
                     {project.category}
                   </Badge>
                 )}
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/40 backdrop-blur-sm border border-border/20">
-                  <div className={`w-2 h-2 rounded-full ${statusPulseMap[project.status] || 'bg-muted-foreground'} animate-pulse`} style={{ boxShadow: project.status === 'In Progress' ? '0 0 8px hsl(var(--accent))' : undefined }} />
-                  <span className="text-[10px] font-semibold text-foreground tracking-wide">{project.status === 'In Progress' ? 'DEVAM EDİYOR' : project.status === 'Completed' ? 'TAMAMLANDI' : 'PLANLANMIŞ'}</span>
-                </div>
+                {project.status === 'Completed' ? (
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/40 backdrop-blur-sm border border-border/20">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-[10px] font-medium text-muted-foreground">
+                      {project.completion_date ? (() => {
+                        try {
+                          const d = new Date(project.completion_date);
+                          const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+                          return `${months[d.getMonth()]} ${d.getFullYear()}`;
+                        } catch { return 'Tamamlandı'; }
+                      })() : 'Tamamlandı'}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/40 backdrop-blur-sm border border-border/20">
+                    <div className={`w-2 h-2 rounded-full ${statusPulseMap[project.status] || 'bg-muted-foreground'} animate-pulse`} style={{ boxShadow: project.status === 'In Progress' ? '0 0 8px hsl(var(--accent))' : undefined }} />
+                    <span className="text-[10px] font-semibold text-foreground tracking-wide">{project.status === 'In Progress' ? 'DEVAM EDİYOR' : 'PLANLANMIŞ'}</span>
+                  </div>
+                )}
               </div>
               <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground leading-tight tracking-tight drop-shadow-lg">
                 {project.title}
