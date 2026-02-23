@@ -116,6 +116,7 @@ export const MayorDashboard = () => {
        {/* Tier 1: Brand + Nav + User */}
       <header className="sticky top-0 z-[9999] bg-background border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2.5">
+          {/* Row 1: Brand + Icons (always), Nav links (desktop) */}
           <div className="flex items-center justify-between">
             {/* Brand – resets all filters */}
             <button
@@ -125,8 +126,8 @@ export const MayorDashboard = () => {
               KEPEZ BELEDİYESİ
             </button>
 
-            {/* Nav Links – horizontally scrollable on mobile */}
-            <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            {/* Nav Links – hidden on mobile, shown on md+ */}
+            <nav className="hidden md:flex items-center gap-1">
               {([
                 { label: 'Tüm Projeler', status: '' as StatusFilter, mode: 'projects' as ViewMode },
                 { label: 'Devam Edenler', status: 'In Progress' as StatusFilter, mode: 'projects' as ViewMode },
@@ -213,6 +214,33 @@ export const MayorDashboard = () => {
               </div>
             </div>
           </div>
+
+          {/* Row 2: Nav links on mobile – horizontally scrollable ribbon */}
+          <nav className="flex md:hidden items-center gap-3 overflow-x-auto scrollbar-hide py-2 -mx-4 px-4">
+            {([
+              { label: 'Tüm Projeler', status: '' as StatusFilter, mode: 'projects' as ViewMode },
+              { label: 'Devam Edenler', status: 'In Progress' as StatusFilter, mode: 'projects' as ViewMode },
+              { label: 'Tamamlananlar', status: 'Completed' as StatusFilter, mode: 'projects' as ViewMode },
+              { label: 'Planlananlar', status: 'Planned' as StatusFilter, mode: 'projects' as ViewMode },
+              { label: 'Kategoriler', status: '' as StatusFilter, mode: 'categories' as ViewMode },
+            ]).map((item) => {
+              const isActive = viewMode === item.mode && statusFilter === item.status && !(item.mode === 'projects' && item.status === '' && viewMode === 'categories');
+              const isActiveCategory = item.mode === 'categories' && viewMode === 'categories';
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => { setViewMode(item.mode); setStatusFilter(item.status); }}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
+                    isActive || isActiveCategory
+                      ? 'text-accent bg-accent/10'
+                      : 'text-muted-foreground hover:text-accent'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
         </div>
       </header>
 

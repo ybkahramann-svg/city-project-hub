@@ -58,12 +58,12 @@ export const AnalyticsPanel = ({ projects }: AnalyticsPanelProps) => {
             </div>
             <p className="text-xl md:text-2xl font-bold text-foreground">{inProgress}</p>
           </div>
-          <div className="rounded-lg bg-secondary/40 p-3 border border-border/20">
+          <div className="rounded-lg bg-secondary/40 p-2 md:p-3 border border-border/20">
             <div className="flex items-center gap-2 mb-1">
               <CheckCircle className="w-3.5 h-3.5 text-green-500" />
               <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Biten</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{completed}</p>
+            <p className="text-xl md:text-2xl font-bold text-foreground">{completed}</p>
           </div>
         </div>
 
