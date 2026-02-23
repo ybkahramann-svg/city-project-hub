@@ -34,36 +34,36 @@ export const AnalyticsPanel = ({ projects }: AnalyticsPanelProps) => {
       </div>
 
       {/* Stats */}
-      <div className="flex-1 p-4 flex flex-col justify-between gap-4">
+      <div className="flex-1 p-3 md:p-4 flex flex-col justify-between gap-2 md:gap-4">
         {/* KPI row */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg bg-secondary/40 p-3 border border-border/20">
+        <div className="grid grid-cols-2 gap-2 md:gap-3">
+          <div className="rounded-lg bg-secondary/40 p-2 md:p-3 border border-border/20">
             <div className="flex items-center gap-2 mb-1">
               <FolderKanban className="w-3.5 h-3.5 text-accent" />
               <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Projeler</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{total}</p>
+            <p className="text-xl md:text-2xl font-bold text-foreground">{total}</p>
           </div>
-          <div className="rounded-lg bg-secondary/40 p-3 border border-border/20">
+          <div className="rounded-lg bg-secondary/40 p-2 md:p-3 border border-border/20">
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp className="w-3.5 h-3.5 text-accent" />
               <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Bütçe</span>
             </div>
-            <p className="text-2xl font-bold text-accent">{formatBudget(totalBudget)}</p>
+            <p className="text-xl md:text-2xl font-bold text-accent">{formatBudget(totalBudget)}</p>
           </div>
-          <div className="rounded-lg bg-secondary/40 p-3 border border-border/20">
+          <div className="rounded-lg bg-secondary/40 p-2 md:p-3 border border-border/20">
             <div className="flex items-center gap-2 mb-1">
               <HardHat className="w-3.5 h-3.5 text-yellow-500" />
               <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Aktif</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{inProgress}</p>
+            <p className="text-xl md:text-2xl font-bold text-foreground">{inProgress}</p>
           </div>
-          <div className="rounded-lg bg-secondary/40 p-3 border border-border/20">
+          <div className="rounded-lg bg-secondary/40 p-2 md:p-3 border border-border/20">
             <div className="flex items-center gap-2 mb-1">
               <CheckCircle className="w-3.5 h-3.5 text-green-500" />
               <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Biten</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{completed}</p>
+            <p className="text-xl md:text-2xl font-bold text-foreground">{completed}</p>
           </div>
         </div>
 

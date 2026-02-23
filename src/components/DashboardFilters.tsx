@@ -47,59 +47,62 @@ export const DashboardFilters = ({
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      {/* Search */}
-      <div className="relative flex-1 min-w-[200px]">
+    <div className="space-y-2 md:space-y-0">
+      {/* Search – full width on mobile, inline on desktop */}
+      <div className="relative w-full md:w-auto md:min-w-[200px] md:flex-1 md:inline-block">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Proje Ara..."
-          className="pl-9 bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-accent"
+          className="pl-9 bg-input/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-accent w-full"
         />
       </div>
 
-      {/* District */}
-      <select
-        value={district}
-        onChange={(e) => {
-          onDistrictChange(e.target.value);
-          onNeighborhoodChange('');
-        }}
-        className="px-3 py-2 bg-card border border-border/50 rounded-md text-foreground text-sm focus:border-accent outline-none"
-      >
-        <option value="">Tüm İlçeler</option>
-        {districts.map((d) => (
-          <option key={d} value={d}>{d}</option>
-        ))}
-      </select>
-
-      {/* Neighborhood */}
-      <select
-        value={neighborhood}
-        onChange={(e) => onNeighborhoodChange(e.target.value)}
-        className="px-3 py-2 bg-card border border-border/50 rounded-md text-foreground text-sm focus:border-accent outline-none"
-      >
-        <option value="">Tüm Mahalleler</option>
-        {neighborhoods.map((n) => (
-          <option key={n} value={n}>{n}</option>
-        ))}
-      </select>
-
-      {/* Sort */}
-      <div className="flex items-center gap-1.5">
-        <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+      {/* Filters row – grid on mobile, inline flex on desktop */}
+      <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center md:gap-3 md:mt-0 mt-2">
+        {/* District */}
         <select
-          value={sort}
-          onChange={(e) => onSortChange(e.target.value as SortOption)}
-          className="px-3 py-2 bg-card border border-border/50 rounded-md text-foreground text-sm focus:border-accent outline-none"
+          value={district}
+          onChange={(e) => {
+            onDistrictChange(e.target.value);
+            onNeighborhoodChange('');
+          }}
+          className="px-3 py-2 bg-card border border-border/50 rounded-md text-foreground text-sm focus:border-accent outline-none w-full md:w-auto"
         >
-          <option value="newest">Yeniden Eskiye</option>
-          <option value="az">A-Z</option>
-          <option value="za">Z-A</option>
-          <option value="budget_desc">Bütçe (Azalan)</option>
-          <option value="budget_asc">Bütçe (Artan)</option>
+          <option value="">Tüm İlçeler</option>
+          {districts.map((d) => (
+            <option key={d} value={d}>{d}</option>
+          ))}
         </select>
+
+        {/* Neighborhood */}
+        <select
+          value={neighborhood}
+          onChange={(e) => onNeighborhoodChange(e.target.value)}
+          className="px-3 py-2 bg-card border border-border/50 rounded-md text-foreground text-sm focus:border-accent outline-none w-full md:w-auto"
+        >
+          <option value="">Tüm Mahalleler</option>
+          {neighborhoods.map((n) => (
+            <option key={n} value={n}>{n}</option>
+          ))}
+        </select>
+
+        {/* Sort */}
+        <div className="flex items-center gap-1.5 col-span-2 md:col-span-1">
+          <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+          <select
+            value={sort}
+            onChange={(e) => onSortChange(e.target.value as SortOption)}
+            className="px-3 py-2 bg-card border border-border/50 rounded-md text-foreground text-sm focus:border-accent outline-none w-full md:w-auto"
+          >
+            <option value="newest">Yeniden Eskiye</option>
+            <option value="az">A-Z</option>
+            <option value="za">Z-A</option>
+            <option value="budget_desc">Bütçe (Azalan)</option>
+            <option value="budget_asc">Bütçe (Artan)</option>
+          </select>
+        </div>
       </div>
     </div>
   );
