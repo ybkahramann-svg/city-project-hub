@@ -216,7 +216,7 @@ export const MayorDashboard = () => {
           </div>
 
           {/* Row 2: Nav links on mobile – horizontally scrollable ribbon */}
-          <nav className="flex md:hidden items-center gap-3 overflow-x-auto scrollbar-hide py-2 -mx-4 px-4">
+          <nav className="flex md:hidden items-center gap-3 overflow-x-auto scrollbar-hide py-2 -mx-4 px-4 pr-8">
             {([
               { label: 'Tüm Projeler', status: '' as StatusFilter, mode: 'projects' as ViewMode },
               { label: 'Devam Edenler', status: 'In Progress' as StatusFilter, mode: 'projects' as ViewMode },
