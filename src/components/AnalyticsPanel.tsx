@@ -42,7 +42,7 @@ export const AnalyticsPanel = ({ projects }: AnalyticsPanelProps) => {
               <FolderKanban className="w-3.5 h-3.5 text-accent" />
               <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Projeler</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{total}</p>
+            <p className="text-xl md:text-2xl font-bold text-foreground">{total}</p>
           </div>
           <div className="rounded-lg bg-secondary/40 p-3 border border-border/20">
             <div className="flex items-center gap-2 mb-1">
