@@ -28,6 +28,7 @@ export interface Project {
   is_umbrella?: boolean;
   sub_locations?: { name: string; status: string; lat: number; lng: number }[] | null;
   completion_date?: string;
+  planned_date?: string;
   created_at?: string;
 }
 
