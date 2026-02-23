@@ -114,14 +114,14 @@ export const MayorDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
        {/* Tier 1: Brand + Nav + User */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
+      <header className="sticky top-0 z-[9999] bg-background border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
             {/* Brand */}
             <h1 className="text-base font-black uppercase tracking-[0.15em] text-accent flex-shrink-0">KEPEZ BELEDİYESİ</h1>
 
-            {/* Center Nav Links */}
-            <nav className="hidden md:flex items-center gap-1">
+            {/* Nav Links – horizontally scrollable on mobile */}
+            <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
               {([
                 { label: 'Tüm Projeler', status: '' as StatusFilter, mode: 'projects' as ViewMode },
                 { label: 'Devam Edenler', status: 'In Progress' as StatusFilter, mode: 'projects' as ViewMode },
@@ -135,7 +135,7 @@ export const MayorDashboard = () => {
                   <button
                     key={item.label}
                     onClick={() => { setViewMode(item.mode); setStatusFilter(item.status); }}
-                    className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-colors ${
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
                       isActive || isActiveCategory
                         ? 'text-accent'
                         : 'text-muted-foreground hover:text-accent'
@@ -212,7 +212,7 @@ export const MayorDashboard = () => {
       </header>
 
       {/* Tier 2: Filters */}
-      <div className="sticky top-[52px] z-40 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
+      <div className="sticky top-[52px] z-[9998] bg-background border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2">
           <DashboardFilters
             projects={projects}
