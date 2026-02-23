@@ -67,9 +67,9 @@ export const ProjectCarousel = ({ projects, title, status }: ProjectCarouselProp
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between px-2">
-        <div>
+        <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold text-foreground">{displayTitle}</h2>
-          <p className="text-sm text-muted-foreground mt-1">{projects.length} proje</p>
+          <span className="text-sm text-muted-foreground font-medium">({projects.length} proje)</span>
         </div>
         <div className="flex gap-2">
           <Button

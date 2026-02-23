@@ -212,7 +212,7 @@ export const MayorDashboard = () => {
       </header>
 
       {/* Tier 2: Filters */}
-      <div className="sticky top-[52px] z-40 bg-background/60 backdrop-blur-md border-b border-border/30">
+      <div className="sticky top-[52px] z-40 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2">
           <DashboardFilters
             projects={projects}
