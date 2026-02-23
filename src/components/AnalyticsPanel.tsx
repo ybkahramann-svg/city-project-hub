@@ -34,10 +34,10 @@ export const AnalyticsPanel = ({ projects }: AnalyticsPanelProps) => {
       </div>
 
       {/* Stats */}
-      <div className="flex-1 p-4 flex flex-col justify-between gap-4">
+      <div className="flex-1 p-3 md:p-4 flex flex-col justify-between gap-2 md:gap-4">
         {/* KPI row */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg bg-secondary/40 p-3 border border-border/20">
+        <div className="grid grid-cols-2 gap-2 md:gap-3">
+          <div className="rounded-lg bg-secondary/40 p-2 md:p-3 border border-border/20">
             <div className="flex items-center gap-2 mb-1">
               <FolderKanban className="w-3.5 h-3.5 text-accent" />
               <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Projeler</span>
