@@ -117,8 +117,13 @@ export const MayorDashboard = () => {
       <header className="sticky top-0 z-[9999] bg-background border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
-            {/* Brand */}
-            <h1 className="text-base font-black uppercase tracking-[0.15em] text-accent flex-shrink-0">KEPEZ BELEDİYESİ</h1>
+            {/* Brand – resets all filters */}
+            <button
+              onClick={() => { setViewMode('projects'); setStatusFilter(''); setSearch(''); setDistrict(''); setNeighborhood(''); setSort('newest'); }}
+              className="text-base font-black uppercase tracking-[0.15em] text-accent flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              KEPEZ BELEDİYESİ
+            </button>
 
             {/* Nav Links – horizontally scrollable on mobile */}
             <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
