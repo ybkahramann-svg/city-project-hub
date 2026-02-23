@@ -114,7 +114,7 @@ export const MayorDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
        {/* Tier 1: Brand + Nav + User */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
             {/* Brand */}
