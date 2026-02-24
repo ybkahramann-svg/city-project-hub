@@ -135,6 +135,9 @@ export const AdminPanel = () => {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Mobile filter sheet
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
   const isEditMode = !!editingId;
 
   // Unique values from data
@@ -303,7 +306,7 @@ export const AdminPanel = () => {
   return (
     <div className="h-screen bg-background flex overflow-hidden">
       {/* ── Left Sidebar (Filters) ── */}
-      <aside className="w-[280px] flex-shrink-0 border-r border-border/40 bg-card/60 flex flex-col">
+      <aside className="hidden md:flex w-[280px] flex-shrink-0 border-r border-border/40 bg-card/60 flex-col">
         {/* Header */}
         <div className="p-4 border-b border-border/30">
           <div className="flex items-center gap-2 mb-3">
@@ -422,8 +425,19 @@ export const AdminPanel = () => {
       {/* ── Right Main Area (Data Grid) ── */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <header className="bg-card/40 border-b border-border/30 px-6 py-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">Projeler</h2>
+        <header className="bg-card/40 border-b border-border/30 px-4 md:px-6 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMobileFilterOpen(true)}
+              className="flex md:hidden gap-2 text-xs border-border/30"
+            >
+              <Filter className="w-3.5 h-3.5" />
+              Filtreler
+            </Button>
+            <h2 className="text-sm font-semibold text-foreground">Projeler</h2>
+          </div>
           <Button
             onClick={openCreate}
             className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-lg h-9 text-sm font-semibold shadow-lg shadow-accent/10"
