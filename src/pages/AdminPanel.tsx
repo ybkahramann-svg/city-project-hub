@@ -717,6 +717,114 @@ export const AdminPanel = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* ── Mobile Filter Sheet (Left Slide) ── */}
+      <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+        <SheetContent side="left" className="w-[300px] bg-card border-border/30 overflow-y-auto scrollbar-hide p-0">
+          <SheetHeader className="p-4 pb-3 border-b border-border/20">
+            <SheetTitle className="text-foreground text-sm flex items-center gap-2">
+              <Filter className="w-4 h-4 text-accent" />
+              Filtreler
+            </SheetTitle>
+            <SheetDescription className="text-muted-foreground text-xs">
+              {filtered.length} / {projects.length} gösteriliyor
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="p-4 space-y-5">
+            {/* Panoya Dön */}
+            <Button
+              onClick={() => { setMobileFilterOpen(false); navigate('/mayor'); }}
+              variant="ghost"
+              size="sm"
+              className="w-full gap-2 text-muted-foreground hover:text-foreground text-xs justify-start"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Panoya Dön
+            </Button>
+
+            {/* Search */}
+            <div className="space-y-1.5">
+              <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold flex items-center gap-1">
+                <Search className="w-3 h-3" /> Ara
+              </Label>
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Proje adı..."
+                className="bg-secondary/30 border-border/20 rounded-lg h-9 text-sm pl-3"
+              />
+            </div>
+
+            {/* Status */}
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold flex items-center gap-1">
+                <Filter className="w-3 h-3" /> Durum
+              </Label>
+              {(['In Progress', 'Completed', 'Planned'] as const).map((s) => (
+                <label key={s} className="flex items-center gap-2 cursor-pointer group">
+                  <Checkbox
+                    checked={filterStatuses.includes(s)}
+                    onCheckedChange={() => toggleStatus(s)}
+                    className="border-border/50 data-[state=checked]:bg-accent data-[state=checked]:border-accent"
+                  />
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                    {statusLabel[s]}
+                  </span>
+                </label>
+              ))}
+            </div>
+
+            {/* Category */}
+            <div className="space-y-1.5">
+              <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Kategori</Label>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="bg-secondary/30 border-border/20 rounded-lg h-9 text-sm">
+                  <SelectValue placeholder="Tümü" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border z-[9999]">
+                  <SelectItem value="all">Tümü</SelectItem>
+                  {uniqueCategories.map(c => (
+                    <SelectItem key={c} value={c!}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Department */}
+            <div className="space-y-1.5">
+              <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Birim</Label>
+              <Select value={filterDepartment} onValueChange={setFilterDepartment}>
+                <SelectTrigger className="bg-secondary/30 border-border/20 rounded-lg h-9 text-sm">
+                  <SelectValue placeholder="Tümü" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border z-[9999]">
+                  <SelectItem value="all">Tümü</SelectItem>
+                  {uniqueDepartments.map(d => (
+                    <SelectItem key={d} value={d!}>{d}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Mahalle */}
+            <div className="space-y-1.5">
+              <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Mahalle</Label>
+              <Select value={filterNeighborhood} onValueChange={setFilterNeighborhood}>
+                <SelectTrigger className="bg-secondary/30 border-border/20 rounded-lg h-9 text-sm">
+                  <SelectValue placeholder="Tümü" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border z-[9999] max-h-[240px]">
+                  <SelectItem value="all">Tümü</SelectItem>
+                  {uniqueNeighborhoods.map(n => (
+                    <SelectItem key={n} value={n!}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
