@@ -29,6 +29,7 @@ export interface Project {
   sub_locations?: { name: string; status: string; lat: number; lng: number }[] | null;
   completion_date?: string;
   planned_date?: string;
+  detailed_address?: string;
   created_at?: string;
 }
 
