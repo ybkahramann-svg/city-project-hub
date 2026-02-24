@@ -49,6 +49,9 @@ import {
   Building2,
   LayoutDashboard,
   Filter,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 import { addProject, updateProject, deleteProject, Project } from '@/lib/externalDb';
 import { useProjects } from '@/hooks/useProjects';
@@ -79,6 +82,10 @@ const statusBadgeClass: Record<string, string> = {
   Completed: 'bg-green-500/15 text-green-400 border-green-500/30',
   Planned: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
 };
+
+// ─── Sort types ───
+type SortColumn = 'title' | 'category' | 'neighborhood' | 'budget' | 'status';
+type SortDirection = 'asc' | 'desc';
 
 // ─── Form State ───
 interface FormState {
@@ -116,7 +123,11 @@ export const AdminPanel = () => {
   const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterDepartment, setFilterDepartment] = useState('all');
-  const [filterDistrict, setFilterDistrict] = useState('all');
+  const [filterNeighborhood, setFilterNeighborhood] = useState('all');
+
+  // Sort
+  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   // Sheet
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -126,22 +137,73 @@ export const AdminPanel = () => {
 
   const isEditMode = !!editingId;
 
-  // Apply filters
+  // Unique values from data
+  const uniqueCategories = useMemo(() => [...new Set(projects.map(p => p.category).filter(Boolean))], [projects]);
+  const uniqueDepartments = useMemo(() => [...new Set(projects.map(p => p.department).filter(Boolean))], [projects]);
+  const uniqueNeighborhoods = useMemo(() => [...new Set(projects.map(p => p.neighborhood).filter(Boolean))].sort(), [projects]);
+
+  // Apply filters then sort
   const filtered = useMemo(() => {
-    return projects.filter((p) => {
+    let result = projects.filter((p) => {
       if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
       if (filterStatuses.length > 0 && !filterStatuses.includes(p.status)) return false;
       if (filterCategory !== 'all' && p.category !== filterCategory) return false;
       if (filterDepartment !== 'all' && p.department !== filterDepartment) return false;
-      if (filterDistrict !== 'all' && p.district !== filterDistrict) return false;
+      if (filterNeighborhood !== 'all' && p.neighborhood !== filterNeighborhood) return false;
       return true;
     });
-  }, [projects, search, filterStatuses, filterCategory, filterDepartment, filterDistrict]);
 
-  // Unique values from data
-  const uniqueCategories = useMemo(() => [...new Set(projects.map(p => p.category).filter(Boolean))], [projects]);
-  const uniqueDepartments = useMemo(() => [...new Set(projects.map(p => p.department).filter(Boolean))], [projects]);
-  const uniqueDistricts = useMemo(() => [...new Set(projects.map(p => p.district).filter(Boolean))], [projects]);
+    if (sortColumn) {
+      const dir = sortDirection === 'asc' ? 1 : -1;
+      result = [...result].sort((a, b) => {
+        let valA: string | number = '';
+        let valB: string | number = '';
+        switch (sortColumn) {
+          case 'title':
+            valA = (a.title || '').toLowerCase();
+            valB = (b.title || '').toLowerCase();
+            break;
+          case 'category':
+            valA = (a.category || '').toLowerCase();
+            valB = (b.category || '').toLowerCase();
+            break;
+          case 'neighborhood':
+            valA = (a.neighborhood || '').toLowerCase();
+            valB = (b.neighborhood || '').toLowerCase();
+            break;
+          case 'budget':
+            valA = a.budget || 0;
+            valB = b.budget || 0;
+            break;
+          case 'status':
+            valA = (statusLabel[a.status] || '').toLowerCase();
+            valB = (statusLabel[b.status] || '').toLowerCase();
+            break;
+        }
+        if (valA < valB) return -1 * dir;
+        if (valA > valB) return 1 * dir;
+        return 0;
+      });
+    }
+
+    return result;
+  }, [projects, search, filterStatuses, filterCategory, filterDepartment, filterNeighborhood, sortColumn, sortDirection]);
+
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortIcon = ({ column }: { column: SortColumn }) => {
+    if (sortColumn !== column) return <ArrowUpDown className="w-3.5 h-3.5 ml-1 opacity-40" />;
+    return sortDirection === 'asc'
+      ? <ChevronUp className="w-3.5 h-3.5 ml-1 text-accent" />
+      : <ChevronDown className="w-3.5 h-3.5 ml-1 text-accent" />;
+  };
 
   const openCreate = () => {
     setEditingId(null);
@@ -235,6 +297,8 @@ export const AdminPanel = () => {
     if (budget >= 1_000) return `₺${(budget / 1_000).toFixed(0)}K`;
     return `₺${budget}`;
   };
+
+  const headerClass = "text-[10px] uppercase tracking-widest font-semibold flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors select-none";
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
@@ -330,17 +394,17 @@ export const AdminPanel = () => {
             </Select>
           </div>
 
-          {/* District */}
+          {/* Mahalle (replaces İlçe) */}
           <div className="space-y-1.5">
-            <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">İlçe</Label>
-            <Select value={filterDistrict} onValueChange={setFilterDistrict}>
+            <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Mahalle</Label>
+            <Select value={filterNeighborhood} onValueChange={setFilterNeighborhood}>
               <SelectTrigger className="bg-secondary/30 border-border/20 rounded-lg h-9 text-sm">
                 <SelectValue placeholder="Tümü" />
               </SelectTrigger>
-              <SelectContent className="bg-popover border-border z-[9999]">
+              <SelectContent className="bg-popover border-border z-[9999] max-h-[240px]">
                 <SelectItem value="all">Tümü</SelectItem>
-                {uniqueDistricts.map(d => (
-                  <SelectItem key={d} value={d!}>{d}</SelectItem>
+                {uniqueNeighborhoods.map(n => (
+                  <SelectItem key={n} value={n!}>{n}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -380,10 +444,31 @@ export const AdminPanel = () => {
               <TableHeader>
                 <TableRow className="border-border/20 hover:bg-transparent">
                   <TableHead className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold w-[50px]">#</TableHead>
-                  <TableHead className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Proje Adı</TableHead>
-                  <TableHead className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Kategori & Birim</TableHead>
-                  <TableHead className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold text-right">Bütçe</TableHead>
-                  <TableHead className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold text-center">Durum</TableHead>
+                  <TableHead>
+                    <button onClick={() => handleSort('title')} className={cn(headerClass, "text-muted-foreground")}>
+                      Proje Adı <SortIcon column="title" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button onClick={() => handleSort('category')} className={cn(headerClass, "text-muted-foreground")}>
+                      Kategori & Birim <SortIcon column="category" />
+                    </button>
+                  </TableHead>
+                  <TableHead>
+                    <button onClick={() => handleSort('neighborhood')} className={cn(headerClass, "text-muted-foreground")}>
+                      Mahalle <SortIcon column="neighborhood" />
+                    </button>
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <button onClick={() => handleSort('budget')} className={cn(headerClass, "text-muted-foreground ml-auto")}>
+                      Bütçe <SortIcon column="budget" />
+                    </button>
+                  </TableHead>
+                  <TableHead className="text-center">
+                    <button onClick={() => handleSort('status')} className={cn(headerClass, "text-muted-foreground mx-auto")}>
+                      Durum <SortIcon column="status" />
+                    </button>
+                  </TableHead>
                   <TableHead className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold text-right">Aksiyonlar</TableHead>
                 </TableRow>
               </TableHeader>
@@ -400,17 +485,15 @@ export const AdminPanel = () => {
                             <Building2 className="w-4 h-4 text-muted-foreground/40" />
                           </div>
                         )}
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate max-w-[250px]">{project.title}</p>
-                          {project.district && (
-                            <p className="text-[11px] text-muted-foreground/70">{project.district}{project.neighborhood ? ` / ${project.neighborhood}` : ''}</p>
-                          )}
-                        </div>
+                        <p className="text-sm font-medium text-foreground truncate max-w-[250px]">{project.title}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <p className="text-xs text-foreground/80">{project.category || '—'}</p>
                       <p className="text-[11px] text-muted-foreground/60">{project.department || '—'}</p>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-xs text-foreground/80">{project.neighborhood || '—'}</p>
                     </TableCell>
                     <TableCell className="text-right">
                       <span className="text-sm font-semibold text-foreground">{formatBudget(project.budget)}</span>
