@@ -485,7 +485,12 @@ export const AdminPanel = () => {
                             <Building2 className="w-4 h-4 text-muted-foreground/40" />
                           </div>
                         )}
-                        <p className="text-sm font-medium text-foreground truncate max-w-[250px]">{project.title}</p>
+                        <button
+                          onClick={() => navigate(`/admin/project/${project.id}`)}
+                          className="text-sm font-medium text-primary truncate max-w-[250px] text-left cursor-pointer hover:underline transition-colors"
+                        >
+                          {project.title}
+                        </button>
                       </div>
                     </TableCell>
                     <TableCell>
