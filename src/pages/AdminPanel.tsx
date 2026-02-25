@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MediaUploader } from '@/components/MediaUploader';
+import { MediaGallery } from '@/components/MediaGallery';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,6 +58,8 @@ import {
   CheckCircle2,
   Clock,
   CalendarClock,
+  Upload,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { addProject, updateProject, deleteProject, Project } from '@/lib/externalDb';
 import { useProjects } from '@/hooks/useProjects';
@@ -142,6 +146,9 @@ export const AdminPanel = () => {
   // Mobile filter & sort sheets
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [mobileSortOpen, setMobileSortOpen] = useState(false);
+
+  // Media uploader
+  const [mediaUploaderOpen, setMediaUploaderOpen] = useState(false);
 
   const isEditMode = !!editingId;
 
@@ -435,13 +442,25 @@ export const AdminPanel = () => {
             <h2 className="text-sm font-semibold text-foreground hidden md:block">Projeler</h2>
             <h2 className="text-sm font-semibold text-foreground md:hidden">Projeler <span className="text-muted-foreground font-normal">({filtered.length})</span></h2>
           </div>
-          <Button
-            onClick={openCreate}
-            className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-lg h-9 text-sm font-semibold shadow-lg shadow-accent/10"
-          >
-            <Plus className="w-4 h-4" />
-            Yeni Proje Ekle
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMediaUploaderOpen(true)}
+              className="gap-1.5 text-xs border-border/30 h-9"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Medya Yükle</span>
+            </Button>
+            <Button
+              onClick={openCreate}
+              className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-lg h-9 text-sm font-semibold shadow-lg shadow-accent/10"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Yeni Proje Ekle</span>
+              <span className="sm:hidden">Ekle</span>
+            </Button>
+          </div>
         </header>
 
         {/* Mobile Filter & Sort Bar */}
@@ -624,7 +643,19 @@ export const AdminPanel = () => {
             </>
           )}
         </div>
+
+        {/* Media Gallery Section */}
+        <div className="border-t border-border/20 p-4 md:p-6">
+          <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+            <ImageIcon className="w-4 h-4 text-accent" />
+            Medya Galerisi
+          </h3>
+          <MediaGallery compact />
+        </div>
       </main>
+
+      {/* Media Uploader Dialog */}
+      <MediaUploader open={mediaUploaderOpen} onOpenChange={setMediaUploaderOpen} />
 
       {/* ── Slide-out Sheet (Create / Edit) ── */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
