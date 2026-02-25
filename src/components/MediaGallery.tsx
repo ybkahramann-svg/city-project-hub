@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useProjects } from '@/hooks/useProjects';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Image as ImageIcon } from 'lucide-react';
+import { Images } from 'lucide-react';
 
 interface GalleryImage {
   id: string;
@@ -48,7 +48,7 @@ export const MediaGallery = ({ compact = false }: MediaGalleryProps) => {
     if (items.length === 0) {
       return (
         <div className="py-12 text-center">
-          <ImageIcon className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
+          <Images className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
           <p className="text-sm text-muted-foreground">Henüz görsel yok</p>
         </div>
       );

@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Bell, Image as ImageIcon } from 'lucide-react';
+import { LogOut, Bell, Images } from 'lucide-react';
 import { MediaGallery } from '@/components/MediaGallery';
 import { ProjectCarousel } from '@/components/ProjectCarousel';
 import { CategoryView } from '@/components/CategoryView';
@@ -300,7 +300,7 @@ export const MayorDashboard = () => {
         {/* Media Gallery */}
         <section>
           <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-            <ImageIcon className="w-5 h-5 text-accent" />
+            <Images className="w-5 h-5 text-accent" />
             Medya Galerisi
           </h2>
           <MediaGallery />
