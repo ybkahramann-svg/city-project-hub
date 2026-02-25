@@ -1,8 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MediaUploader } from '@/components/MediaUploader';
-import { MediaGallery } from '@/components/MediaGallery';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -59,8 +57,7 @@ import {
   CheckCircle2,
   Clock,
   CalendarClock,
-  Upload,
-  Images,
+  UploadCloud,
 } from 'lucide-react';
 import { addProject, updateProject, deleteProject, Project } from '@/lib/externalDb';
 import { useProjects } from '@/hooks/useProjects';
@@ -450,7 +447,7 @@ export const AdminPanel = () => {
               onClick={() => setMediaUploaderOpen(true)}
               className="gap-1.5 text-xs border-border/30 h-9"
             >
-              <Upload className="w-3.5 h-3.5" />
+              <UploadCloud className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Medya Yükle</span>
             </Button>
             <Button
@@ -645,16 +642,6 @@ export const AdminPanel = () => {
           )}
         </div>
 
-        {/* Media Gallery Section */}
-        <ErrorBoundary>
-          <div className="border-t border-border/20 p-4 md:p-6">
-            <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Images className="w-4 h-4 text-accent" />
-              Medya Galerisi
-            </h3>
-            <MediaGallery compact />
-          </div>
-        </ErrorBoundary>
       </main>
 
       {/* Media Uploader Dialog */}

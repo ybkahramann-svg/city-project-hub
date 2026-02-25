@@ -21,9 +21,12 @@ import {
 } from '@/components/ui/table';
 import {
   ArrowLeft, Pencil, Save, MapPin, Calendar, Building2, DollarSign,
-  FileText, Hash, Globe, Layers,
+  FileText, Hash, Globe, Layers, UploadCloud, ImagePlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MediaUploader } from '@/components/MediaUploader';
+import { MediaGallery } from '@/components/MediaGallery';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const CATEGORIES = [
   'Altyapı', 'Ulaşım', 'Park & Yeşil Alan', 'Eğitim', 'Sağlık',
@@ -71,6 +74,8 @@ const AdminProjectDetail = () => {
     image_url: '', manager_name: '', impact_stat: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [mediaUploaderOpen, setMediaUploaderOpen] = useState(false);
 
   const openEdit = () => {
     if (!project) return;
@@ -324,7 +329,34 @@ const AdminProjectDetail = () => {
             </div>
           )}
         </div>
+
+        {/* ── Project Gallery ── */}
+        <ErrorBoundary>
+          <div className="max-w-7xl mx-auto mt-5">
+            <div className={sectionClass}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <ImagePlus className="w-4 h-4 text-accent" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Proje Galerisi</h3>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMediaUploaderOpen(true)}
+                  className="gap-1.5 text-xs border-border/30 h-8"
+                >
+                  <UploadCloud className="w-3.5 h-3.5" />
+                  Görsel Yükle
+                </Button>
+              </div>
+              <MediaGallery projectId={id} />
+            </div>
+          </div>
+        </ErrorBoundary>
       </div>
+
+      {/* Media Uploader (project-context) */}
+      <MediaUploader open={mediaUploaderOpen} onOpenChange={setMediaUploaderOpen} projectId={id} />
 
       {/* ── Edit Sheet (reused pattern) ── */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>

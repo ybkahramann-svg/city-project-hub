@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useProjects } from '@/hooks/useProjects';
 import { useQueryClient } from '@tanstack/react-query';
@@ -19,25 +19,30 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Upload, Images, X, Loader2 } from 'lucide-react';
+import { UploadCloud, X, Loader2, ImagePlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MediaUploaderProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** If provided, locks to project mode with this project ID */
+  projectId?: string;
 }
 
-export const MediaUploader = ({ open, onOpenChange }: MediaUploaderProps) => {
+export const MediaUploader = ({ open, onOpenChange, projectId: fixedProjectId }: MediaUploaderProps) => {
   const { data: projects = [] } = useProjects();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [category, setCategory] = useState<'project' | 'general'>('general');
-  const [projectId, setProjectId] = useState('');
+  const isProjectContext = !!fixedProjectId;
+  const [category, setCategory] = useState<'project' | 'general'>(isProjectContext ? 'project' : 'general');
+  const [selectedProjectId, setSelectedProjectId] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+
+  const effectiveProjectId = fixedProjectId || selectedProjectId;
 
   const handleFiles = useCallback((newFiles: FileList | File[]) => {
     const accepted = Array.from(newFiles).filter(f => f.type.startsWith('image/'));
@@ -64,14 +69,15 @@ export const MediaUploader = ({ open, onOpenChange }: MediaUploaderProps) => {
 
   const handleUpload = async () => {
     if (files.length === 0) { toast.error('Lütfen en az bir görsel seçin'); return; }
-    if (category === 'project' && !projectId) { toast.error('Lütfen bir proje seçin'); return; }
+    const effectiveCat = isProjectContext ? 'project' : category;
+    if (effectiveCat === 'project' && !effectiveProjectId) { toast.error('Lütfen bir proje seçin'); return; }
 
     setUploading(true);
     try {
       for (const file of files) {
         const ext = file.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const filePath = `${category}/${fileName}`;
+        const filePath = `${effectiveCat}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('gallery')
@@ -82,8 +88,8 @@ export const MediaUploader = ({ open, onOpenChange }: MediaUploaderProps) => {
 
         const { error: dbError } = await supabase.from('gallery_images').insert({
           image_url: urlData.publicUrl,
-          category,
-          project_id: category === 'project' ? projectId : null,
+          category: effectiveCat,
+          project_id: effectiveCat === 'project' ? effectiveProjectId : null,
         });
         if (dbError) throw dbError;
       }
@@ -92,10 +98,10 @@ export const MediaUploader = ({ open, onOpenChange }: MediaUploaderProps) => {
       queryClient.invalidateQueries({ queryKey: ['gallery-images'] });
       setFiles([]);
       setPreviews([]);
-      setCategory('general');
-      setProjectId('');
+      if (!isProjectContext) { setCategory('general'); setSelectedProjectId(''); }
       onOpenChange(false);
     } catch (err: any) {
+      console.error('Upload error:', err);
       toast.error(err?.message || 'Yükleme başarısız');
     } finally {
       setUploading(false);
@@ -105,8 +111,7 @@ export const MediaUploader = ({ open, onOpenChange }: MediaUploaderProps) => {
   const reset = () => {
     setFiles([]);
     setPreviews([]);
-    setCategory('general');
-    setProjectId('');
+    if (!isProjectContext) { setCategory('general'); setSelectedProjectId(''); }
   };
 
   return (
@@ -114,8 +119,8 @@ export const MediaUploader = ({ open, onOpenChange }: MediaUploaderProps) => {
       <DialogContent className="bg-card border-border/30 max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-foreground flex items-center gap-2">
-            <Upload className="w-5 h-5 text-accent" />
-            Medya Yükle
+            <UploadCloud className="w-5 h-5 text-accent" />
+            {isProjectContext ? 'Proje Görseli Yükle' : 'Medya Yükle'}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground text-xs">
             Görselleri sürükleyip bırakın veya seçmek için tıklayın
@@ -123,36 +128,38 @@ export const MediaUploader = ({ open, onOpenChange }: MediaUploaderProps) => {
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Category Selection */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Kategori</Label>
-              <Select value={category} onValueChange={(v) => setCategory(v as 'project' | 'general')}>
-                <SelectTrigger className="bg-secondary/30 border-border/20 rounded-lg h-9 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border z-[9999]">
-                  <SelectItem value="general">Genel Görsel</SelectItem>
-                  <SelectItem value="project">Proje Görseli</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {category === 'project' && (
+          {/* Category Selection - only show when NOT in project context */}
+          {!isProjectContext && (
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Proje</Label>
-                <Select value={projectId} onValueChange={setProjectId}>
+                <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Kategori</Label>
+                <Select value={category} onValueChange={(v) => setCategory(v as 'project' | 'general')}>
                   <SelectTrigger className="bg-secondary/30 border-border/20 rounded-lg h-9 text-sm">
-                    <SelectValue placeholder="Proje seçin" />
+                    <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border-border z-[9999] max-h-[200px]">
-                    {projects.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
-                    ))}
+                  <SelectContent className="bg-popover border-border z-[9999]">
+                    <SelectItem value="general">Genel Görsel</SelectItem>
+                    <SelectItem value="project">Proje Görseli</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            )}
-          </div>
+              {category === 'project' && (
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Proje</Label>
+                  <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                    <SelectTrigger className="bg-secondary/30 border-border/20 rounded-lg h-9 text-sm">
+                      <SelectValue placeholder="Proje seçin" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border z-[9999] max-h-[200px]">
+                      {projects.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Dropzone */}
           <div
@@ -175,7 +182,7 @@ export const MediaUploader = ({ open, onOpenChange }: MediaUploaderProps) => {
               className="hidden"
               onChange={(e) => e.target.files && handleFiles(e.target.files)}
             />
-            <Images className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
+            <ImagePlus className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
             <p className="text-sm text-muted-foreground">
               Buraya sürükleyip bırakın veya <span className="text-accent font-medium">seçmek için tıklayın</span>
             </p>
@@ -205,7 +212,7 @@ export const MediaUploader = ({ open, onOpenChange }: MediaUploaderProps) => {
             disabled={uploading || files.length === 0}
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-10 gap-2 rounded-lg"
           >
-            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
             {uploading ? 'Yükleniyor...' : `${files.length} Görsel Yükle`}
           </Button>
         </div>
