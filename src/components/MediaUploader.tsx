@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Upload, Image as ImageIcon, X, Loader2 } from 'lucide-react';
+import { Upload, Images, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MediaUploaderProps {
@@ -175,7 +175,7 @@ export const MediaUploader = ({ open, onOpenChange }: MediaUploaderProps) => {
               className="hidden"
               onChange={(e) => e.target.files && handleFiles(e.target.files)}
             />
-            <ImageIcon className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
+            <Images className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
             <p className="text-sm text-muted-foreground">
               Buraya sürükleyip bırakın veya <span className="text-accent font-medium">seçmek için tıklayın</span>
             </p>
