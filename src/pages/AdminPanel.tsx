@@ -52,6 +52,10 @@ import {
   ArrowUpDown,
   ChevronUp,
   ChevronDown,
+  SlidersHorizontal,
+  CheckCircle2,
+  Clock,
+  CalendarClock,
 } from 'lucide-react';
 import { addProject, updateProject, deleteProject, Project } from '@/lib/externalDb';
 import { useProjects } from '@/hooks/useProjects';
@@ -135,8 +139,9 @@ export const AdminPanel = () => {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mobile filter sheet
+  // Mobile filter & sort sheets
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [mobileSortOpen, setMobileSortOpen] = useState(false);
 
   const isEditMode = !!editingId;
 
@@ -427,16 +432,8 @@ export const AdminPanel = () => {
         {/* Top Bar */}
         <header className="bg-card/40 border-b border-border/30 px-4 md:px-6 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setMobileFilterOpen(true)}
-              className="flex md:hidden gap-2 text-xs border-border/30"
-            >
-              <Filter className="w-3.5 h-3.5" />
-              Filtreler
-            </Button>
-            <h2 className="text-sm font-semibold text-foreground">Projeler</h2>
+            <h2 className="text-sm font-semibold text-foreground hidden md:block">Projeler</h2>
+            <h2 className="text-sm font-semibold text-foreground md:hidden">Projeler <span className="text-muted-foreground font-normal">({filtered.length})</span></h2>
           </div>
           <Button
             onClick={openCreate}
@@ -447,116 +444,184 @@ export const AdminPanel = () => {
           </Button>
         </header>
 
-        {/* Data Table */}
+        {/* Mobile Filter & Sort Bar */}
+        <div className="flex md:hidden gap-2 px-4 pt-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setMobileFilterOpen(true)}
+            className="flex-1 gap-2 text-xs border-border/30 h-9"
+          >
+            <Filter className="w-3.5 h-3.5" />
+            Filtrele
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setMobileSortOpen(true)}
+            className="flex-1 gap-2 text-xs border-border/30 h-9"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            Sırala
+          </Button>
+        </div>
+
+        {/* Data Area */}
         <div className="flex-1 overflow-auto">
           {isLoading ? (
             <div className="p-12 text-center text-muted-foreground">Yükleniyor...</div>
           ) : filtered.length === 0 ? (
             <div className="p-12 text-center text-muted-foreground">Proje bulunamadı</div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border/20 hover:bg-transparent">
-                  <TableHead className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold w-[50px]">#</TableHead>
-                  <TableHead>
-                    <button onClick={() => handleSort('title')} className={cn(headerClass, "text-muted-foreground")}>
-                      Proje Adı <SortIcon column="title" />
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button onClick={() => handleSort('category')} className={cn(headerClass, "text-muted-foreground")}>
-                      Kategori & Birim <SortIcon column="category" />
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button onClick={() => handleSort('neighborhood')} className={cn(headerClass, "text-muted-foreground")}>
-                      Mahalle <SortIcon column="neighborhood" />
-                    </button>
-                  </TableHead>
-                  <TableHead className="text-right">
-                    <button onClick={() => handleSort('budget')} className={cn(headerClass, "text-muted-foreground ml-auto")}>
-                      Bütçe <SortIcon column="budget" />
-                    </button>
-                  </TableHead>
-                  <TableHead className="text-center">
-                    <button onClick={() => handleSort('status')} className={cn(headerClass, "text-muted-foreground mx-auto")}>
-                      Durum <SortIcon column="status" />
-                    </button>
-                  </TableHead>
-                  <TableHead className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold text-right">Aksiyonlar</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((project, i) => (
-                  <TableRow key={project.id} className="border-border/10 hover:bg-secondary/20 group">
-                    <TableCell className="text-xs text-muted-foreground font-mono">{i + 1}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        {project.image_url ? (
-                          <img src={project.image_url} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0 border border-border/20" />
-                        ) : (
-                          <div className="w-9 h-9 rounded-lg bg-secondary/50 flex-shrink-0 border border-border/20 flex items-center justify-center">
-                            <Building2 className="w-4 h-4 text-muted-foreground/40" />
-                          </div>
-                        )}
-                        <button
-                          onClick={() => navigate(`/admin/project/${project.id}`)}
-                          className="text-sm font-medium text-primary truncate max-w-[250px] text-left cursor-pointer hover:underline transition-colors"
-                        >
-                          {project.title}
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border/20 hover:bg-transparent">
+                      <TableHead className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold w-[50px]">#</TableHead>
+                      <TableHead>
+                        <button onClick={() => handleSort('title')} className={cn(headerClass, "text-muted-foreground")}>
+                          Proje Adı <SortIcon column="title" />
                         </button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-xs text-foreground/80">{project.category || '—'}</p>
-                      <p className="text-[11px] text-muted-foreground/60">{project.department || '—'}</p>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-xs text-foreground/80">{project.neighborhood || '—'}</p>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="text-sm font-semibold text-foreground">{formatBudget(project.budget)}</span>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant="outline" className={cn('text-[10px] font-semibold border', statusBadgeClass[project.status])}>
-                        {statusLabel[project.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-accent/10 hover:text-accent" onClick={() => openEdit(project)}>
-                          <Pencil className="w-3.5 h-3.5" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive">
-                              <Trash2 className="w-3.5 h-3.5" />
+                      </TableHead>
+                      <TableHead>
+                        <button onClick={() => handleSort('category')} className={cn(headerClass, "text-muted-foreground")}>
+                          Kategori & Birim <SortIcon column="category" />
+                        </button>
+                      </TableHead>
+                      <TableHead>
+                        <button onClick={() => handleSort('neighborhood')} className={cn(headerClass, "text-muted-foreground")}>
+                          Mahalle <SortIcon column="neighborhood" />
+                        </button>
+                      </TableHead>
+                      <TableHead className="text-right">
+                        <button onClick={() => handleSort('budget')} className={cn(headerClass, "text-muted-foreground ml-auto")}>
+                          Bütçe <SortIcon column="budget" />
+                        </button>
+                      </TableHead>
+                      <TableHead className="text-center">
+                        <button onClick={() => handleSort('status')} className={cn(headerClass, "text-muted-foreground mx-auto")}>
+                          Durum <SortIcon column="status" />
+                        </button>
+                      </TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold text-right">Aksiyonlar</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((project, i) => (
+                      <TableRow key={project.id} className="border-border/10 hover:bg-secondary/20 group">
+                        <TableCell className="text-xs text-muted-foreground font-mono">{i + 1}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            {project.image_url ? (
+                              <img src={project.image_url} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0 border border-border/20" />
+                            ) : (
+                              <div className="w-9 h-9 rounded-lg bg-secondary/50 flex-shrink-0 border border-border/20 flex items-center justify-center">
+                                <Building2 className="w-4 h-4 text-muted-foreground/40" />
+                              </div>
+                            )}
+                            <button
+                              onClick={() => navigate(`/admin/project/${project.id}`)}
+                              className="text-sm font-medium text-primary truncate max-w-[250px] text-left cursor-pointer hover:underline transition-colors"
+                            >
+                              {project.title}
+                            </button>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-xs text-foreground/80">{project.category || '—'}</p>
+                          <p className="text-[11px] text-muted-foreground/60">{project.department || '—'}</p>
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-xs text-foreground/80">{project.neighborhood || '—'}</p>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className="text-sm font-semibold text-foreground">{formatBudget(project.budget)}</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="outline" className={cn('text-[10px] font-semibold border', statusBadgeClass[project.status])}>
+                            {statusLabel[project.status]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-accent/10 hover:text-accent" onClick={() => openEdit(project)}>
+                              <Pencil className="w-3.5 h-3.5" />
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="bg-card border-border">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-foreground">Projeyi sil?</AlertDialogTitle>
-                              <AlertDialogDescription className="text-muted-foreground">
-                                "{project.title}" kalıcı olarak silinecek. Bu işlem geri alınamaz.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="border-border/50">İptal</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(project.id, project.title)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Sil
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-card border-border">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-foreground">Projeyi sil?</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-muted-foreground">
+                                    "{project.title}" kalıcı olarak silinecek. Bu işlem geri alınamaz.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="border-border/50">İptal</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(project.id, project.title)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Sil
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View (Sahibinden style) */}
+              <div className="flex flex-col gap-3 p-4 md:hidden">
+                {filtered.map((project) => {
+                  const StatusIcon = project.status === 'Completed' ? CheckCircle2
+                    : project.status === 'In Progress' ? Clock : CalendarClock;
+                  const statusColor = project.status === 'Completed' ? 'text-green-400'
+                    : project.status === 'In Progress' ? 'text-accent' : 'text-blue-400';
+
+                  return (
+                    <button
+                      key={project.id}
+                      onClick={() => navigate(`/admin/project/${project.id}`)}
+                      className="flex flex-row gap-3 p-3 border border-border/20 rounded-xl bg-card relative text-left active:scale-[0.98] transition-transform"
+                    >
+                      {project.image_url ? (
+                        <img src={project.image_url} alt="" className="w-20 h-20 rounded-md object-cover flex-shrink-0 border border-border/20" />
+                      ) : (
+                        <div className="w-20 h-20 rounded-md bg-secondary/50 flex-shrink-0 border border-border/20 flex items-center justify-center">
+                          <Building2 className="w-6 h-6 text-muted-foreground/30" />
+                        </div>
+                      )}
+                      <div className="flex flex-col justify-between w-full min-w-0">
+                        <div>
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className="text-sm font-semibold text-foreground truncate">{project.title}</h3>
+                            <StatusIcon className={cn("w-4 h-4 flex-shrink-0 mt-0.5", statusColor)} />
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">
+                            {project.neighborhood || project.category || '—'}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between mt-1.5">
+                          <span className="text-sm font-bold text-primary">{formatBudget(project.budget)}</span>
+                          <span className="text-[10px] text-muted-foreground/60">{project.category}</span>
+                        </div>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       </main>
@@ -822,6 +887,44 @@ export const AdminPanel = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* ── Mobile Sort Sheet ── */}
+      <Sheet open={mobileSortOpen} onOpenChange={setMobileSortOpen}>
+        <SheetContent side="bottom" className="bg-card border-border/30 rounded-t-2xl">
+          <SheetHeader className="pb-3 border-b border-border/20">
+            <SheetTitle className="text-foreground text-sm flex items-center gap-2">
+              <SlidersHorizontal className="w-4 h-4 text-accent" />
+              Sıralama
+            </SheetTitle>
+            <SheetDescription className="text-muted-foreground text-xs">
+              Listeyi sıralamak için bir kriter seçin
+            </SheetDescription>
+          </SheetHeader>
+          <div className="py-3 space-y-1">
+            {([
+              { col: 'title' as SortColumn, label: 'Proje Adı' },
+              { col: 'category' as SortColumn, label: 'Kategori' },
+              { col: 'neighborhood' as SortColumn, label: 'Mahalle' },
+              { col: 'budget' as SortColumn, label: 'Bütçe' },
+              { col: 'status' as SortColumn, label: 'Durum' },
+            ]).map(({ col, label }) => (
+              <button
+                key={col}
+                onClick={() => { handleSort(col); setMobileSortOpen(false); }}
+                className={cn(
+                  "w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm transition-colors",
+                  sortColumn === col ? "bg-accent/10 text-accent font-semibold" : "text-foreground hover:bg-secondary/30"
+                )}
+              >
+                {label}
+                {sortColumn === col && (
+                  sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
+            ))}
           </div>
         </SheetContent>
       </Sheet>
