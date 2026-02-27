@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Search, ArrowUpDown, MapPin, Home } from 'lucide-react';
+import { Search, ArrowUpDown, MapPin, Home, FolderKanban } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Project } from '@/lib/externalDb';
@@ -10,6 +10,8 @@ interface DashboardFiltersProps {
   projects: Project[];
   search: string;
   onSearchChange: (val: string) => void;
+  category?: string;
+  onCategoryChange?: (val: string) => void;
   district: string;
   onDistrictChange: (val: string) => void;
   neighborhood: string;
@@ -22,6 +24,8 @@ export const DashboardFilters = ({
   projects,
   search,
   onSearchChange,
+  category = '',
+  onCategoryChange,
   district,
   onDistrictChange,
   neighborhood,
@@ -29,6 +33,11 @@ export const DashboardFilters = ({
   sort,
   onSortChange,
 }: DashboardFiltersProps) => {
+  const categories = useMemo(
+    () => [...new Set(projects.map((p) => p.category).filter(Boolean))].sort(),
+    [projects]
+  );
+
   const districts = useMemo(
     () => [...new Set(projects.map((p) => p.district).filter(Boolean))].sort(),
     [projects]
@@ -49,7 +58,7 @@ export const DashboardFilters = ({
 
   return (
     <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
-      {/* Search – full width on mobile, stretches on desktop */}
+      {/* Search */}
       <div className="relative w-full md:flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
@@ -60,8 +69,29 @@ export const DashboardFilters = ({
         />
       </div>
 
-      {/* Filters – full-width grid on mobile, inline on desktop */}
+      {/* Filters */}
       <div className="grid grid-cols-2 gap-2 md:flex md:items-center md:gap-3 md:flex-shrink-0">
+        {/* Category */}
+        {onCategoryChange && (
+          <Select
+            value={category || '__all__'}
+            onValueChange={(val) => onCategoryChange(val === '__all__' ? '' : val)}
+          >
+            <SelectTrigger className="w-full md:w-[160px] bg-card border-border/50 text-foreground text-sm">
+              <div className="flex items-center gap-2">
+                <FolderKanban className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <SelectValue placeholder="Tüm Kategoriler" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="bg-popover border-border z-[9999]">
+              <SelectItem value="__all__">Tüm Kategoriler</SelectItem>
+              {categories.map((c) => (
+                <SelectItem key={c} value={c!}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
         {/* District */}
         <Select
           value={district || '__all__'}

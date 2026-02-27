@@ -75,6 +75,22 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
             alt={project.title}
             className="group-hover:scale-110 transition-transform duration-300"
           />
+          {/* Status Badge - always visible */}
+          <Badge
+            className={`absolute top-2 right-2 text-[10px] font-semibold border-0 backdrop-blur-sm ${
+              project.status === 'In Progress'
+                ? 'bg-yellow-500/90 text-yellow-950'
+                : project.status === 'Completed'
+                ? 'bg-green-500/90 text-green-950'
+                : 'bg-red-400/90 text-red-950'
+            }`}
+          >
+            {project.status === 'In Progress'
+              ? 'Devam Ediyor'
+              : project.status === 'Completed'
+              ? 'Tamamlandı'
+              : 'Planlanıyor'}
+          </Badge>
           {project.is_umbrella && (
             <Badge className="absolute top-2 left-2 bg-accent/80 text-accent-foreground border-accent/40 text-[10px] gap-1 backdrop-blur-sm">
               <Network className="w-3 h-3" /> Ağ Projesi
