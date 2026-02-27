@@ -69,6 +69,7 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
   const mapInstance = useRef<L.Map | null>(null);
   const markersRef = useRef<{ marker: L.Marker; color: string; status: string }[]>([]);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
+  const thumbnailCache = useRef<Record<string, string | null>>({});
   const navigate = useNavigate();
 
   // Resize all pins when zoom changes
