@@ -260,6 +260,24 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
         }
         .leaflet-control-zoom a:hover { background: hsl(220 20% 20%) !important; }
         .custom-pin-icon { background: transparent !important; border: none !important; }
+        .map-project-popup .leaflet-popup-content-wrapper {
+          background: hsl(220 20% 10% / 0.97) !important;
+          border: 1px solid hsl(220 20% 20%) !important;
+          border-radius: 12px !important;
+          padding: 0 !important;
+          box-shadow: 0 12px 40px rgba(0,0,0,0.6) !important;
+          overflow: hidden;
+        }
+        .map-project-popup .leaflet-popup-content {
+          margin: 0 !important;
+          line-height: 1 !important;
+        }
+        .map-project-popup .leaflet-popup-tip {
+          background: hsl(220 20% 10% / 0.97) !important;
+          border: 1px solid hsl(220 20% 20%) !important;
+          box-shadow: none !important;
+        }
+        .popup-detail-btn:hover { opacity: 0.85 !important; }
       `}</style>
     </div>
   );
