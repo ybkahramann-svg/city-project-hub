@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Project } from '@/lib/externalDb';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CommandCenterMapProps {
   projects: Project[];
@@ -12,6 +13,12 @@ const STATUS_COLORS: Record<string, string> = {
   'Completed': '#10B981',
   'In Progress': '#EAB308',
   'Planned': '#F87171',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  'Completed': 'Tamamlandı',
+  'In Progress': 'Devam Ediyor',
+  'Planned': 'Planlandı',
 };
 
 const STATUS_GLOW: Record<string, string> = {
