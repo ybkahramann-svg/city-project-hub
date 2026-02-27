@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Bell, Images } from 'lucide-react';
-import { MediaGallery } from '@/components/MediaGallery';
+import { LogOut, Bell } from 'lucide-react';
 import { ProjectCarousel } from '@/components/ProjectCarousel';
 import { CategoryView } from '@/components/CategoryView';
 import { DashboardFilters, SortOption } from '@/components/DashboardFilters';
@@ -50,6 +49,7 @@ export const MayorDashboard = () => {
   const [sort, setSort] = useState<SortOption>('newest');
 
   const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('');
   const [district, setDistrict] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [notifOpen, setNotifOpen] = useState(false);
@@ -87,10 +87,11 @@ export const MayorDashboard = () => {
       );
     }
     if (statusFilter) result = result.filter((p) => p.status === statusFilter);
+    if (category) result = result.filter((p) => p.category === category);
     if (district) result = result.filter((p) => p.district === district);
     if (neighborhood) result = result.filter((p) => p.neighborhood === neighborhood);
     return sortProjects(result, sort);
-  }, [projects, search, statusFilter, district, neighborhood, sort]);
+  }, [projects, search, statusFilter, category, district, neighborhood, sort]);
 
   const inProgress = filtered.filter((p) => p.status === 'In Progress');
   const completed = filtered.filter((p) => p.status === 'Completed');
@@ -121,7 +122,7 @@ export const MayorDashboard = () => {
           <div className="flex items-center justify-between">
             {/* Brand – resets all filters */}
             <button
-              onClick={() => { setViewMode('projects'); setStatusFilter(''); setSearch(''); setDistrict(''); setNeighborhood(''); setSort('newest'); }}
+              onClick={() => { setViewMode('projects'); setStatusFilter(''); setSearch(''); setCategory(''); setDistrict(''); setNeighborhood(''); setSort('newest'); }}
               className="text-base font-black uppercase tracking-[0.15em] text-accent flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
             >
               KEPEZ BELEDİYESİ
@@ -252,6 +253,8 @@ export const MayorDashboard = () => {
             projects={projects}
             search={search}
             onSearchChange={setSearch}
+            category={category}
+            onCategoryChange={setCategory}
             district={district}
             onDistrictChange={setDistrict}
             neighborhood={neighborhood}
@@ -297,14 +300,6 @@ export const MayorDashboard = () => {
           <CategoryView projects={filtered} />
         )}
 
-        {/* Media Gallery */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-            <Images className="w-5 h-5 text-accent" />
-            Medya Galerisi
-          </h2>
-          <MediaGallery />
-        </section>
       </main>
     </div>
   );
