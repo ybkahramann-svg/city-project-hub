@@ -166,7 +166,54 @@ export const CommandCenterMap = ({ projects }: CommandCenterMapProps) => {
         { className: 'map-tooltip', direction: 'top', offset: [0, -8] }
       );
 
-      marker.on('click', () => navigate(`/project/${project.id}`));
+      // Build popup content
+      const statusLabel = STATUS_LABELS[project.status] || project.status;
+      const budgetStr = project.budget ? `₺${Number(project.budget).toLocaleString('tr-TR')}` : '—';
+      const neighborhood = project.neighborhood || project.district || '';
+      const thumbUrl = project.image_url || '';
+
+      const popupContent = document.createElement('div');
+      popupContent.innerHTML = `
+        <div class="map-popup-card" style="width:240px;font-family:system-ui;overflow:hidden;border-radius:10px;">
+          <div style="width:100%;height:100px;background:${color}20;overflow:hidden;position:relative;">
+            ${thumbUrl ? `<img src="${thumbUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'" />` : ''}
+          </div>
+          <div style="padding:10px 12px 8px;">
+            <div style="font-weight:700;font-size:13px;color:#f2f2f2;line-height:1.3;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${project.title}</div>
+            ${neighborhood ? `<div style="font-size:11px;color:#a1a1aa;margin-bottom:6px;">📍 ${neighborhood}</div>` : ''}
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:${color}30;color:${color};">${statusLabel}</span>
+              <span style="font-size:11px;color:#d4d4d8;font-weight:600;">${budgetStr}</span>
+            </div>
+            <button class="popup-detail-btn" style="
+              width:100%;padding:7px 0;border:none;border-radius:6px;
+              background:linear-gradient(135deg,${color},${color}cc);
+              color:#fff;font-size:12px;font-weight:600;cursor:pointer;
+              display:flex;align-items:center;justify-content:center;gap:4px;
+              transition:opacity 0.2s;
+            ">Detayları Gör →</button>
+          </div>
+        </div>
+      `;
+
+      const detailBtn = popupContent.querySelector('.popup-detail-btn');
+      if (detailBtn) {
+        detailBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          navigate(`/admin/project/${project.id}`);
+        });
+      }
+
+      marker.bindPopup(popupContent, {
+        className: 'map-project-popup',
+        closeButton: false,
+        maxWidth: 260,
+        minWidth: 240,
+        offset: [0, -8],
+        autoPan: true,
+        autoPanPadding: [40, 40],
+      });
+
       layerGroup.addLayer(marker);
       markersRef.current.push({ marker, color, status: project.status });
       validCoords.push([lat, lng]);
