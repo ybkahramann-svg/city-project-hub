@@ -74,9 +74,27 @@ export const ProjectListItem = ({ project }: ProjectListItemProps) => {
 
       {/* Col 2: Identity */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground truncate group-hover:text-accent transition-colors">
-          {project.title}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-foreground truncate group-hover:text-accent transition-colors">
+            {project.title}
+          </p>
+          {/* Mobile-only status badge */}
+          <Badge
+            className={`sm:hidden text-[10px] font-semibold border-0 flex-shrink-0 ${
+              project.status === 'In Progress'
+                ? 'bg-yellow-500/90 text-yellow-950'
+                : project.status === 'Completed'
+                ? 'bg-green-500/90 text-green-950'
+                : 'bg-red-400/90 text-red-950'
+            }`}
+          >
+            {project.status === 'In Progress'
+              ? 'Devam'
+              : project.status === 'Completed'
+              ? 'Bitti'
+              : 'Plan'}
+          </Badge>
+        </div>
         <div className="flex items-center gap-2 mt-0.5">
           {project.category && (
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-medium">
