@@ -116,18 +116,11 @@ export const MayorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
-       {/* Tier 1: Brand + Nav + User */}
-      <header className="sticky top-0 z-[9999] bg-background border-b border-border/50 shadow-sm">
+       {/* Tier 1: Nav + User (brand moved to GlobalHeader) */}
+      <header className="sticky top-0 z-[9998] bg-background border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2.5">
-          {/* Row 1: Brand + Icons (always), Nav links (desktop) */}
+          {/* Row 1: Nav links (desktop) + Icons */}
           <div className="flex items-center justify-between">
-            {/* Brand – resets all filters */}
-            <button
-              onClick={() => { setViewMode('projects'); setStatusFilter(''); setSearch(''); setCategory(''); setDistrict(''); setNeighborhood(''); setSort('newest'); }}
-              className="text-base font-black uppercase tracking-[0.15em] text-accent flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-            >
-              KEPEZ BELEDİYESİ
-            </button>
 
             {/* Nav Links – hidden on mobile, shown on md+ */}
             <nav className="hidden md:flex items-center gap-1">
@@ -248,7 +241,7 @@ export const MayorDashboard = () => {
       </header>
 
       {/* Tier 2: Filters */}
-      <div className="sticky top-[52px] z-[9998] bg-background border-b border-border/50 shadow-sm">
+      <div className="sticky top-[44px] z-[9997] bg-background border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2">
           <DashboardFilters
             projects={projects}
