@@ -36,7 +36,7 @@ export const CategoryView = ({ projects }: CategoryViewProps) => {
   return (
     <div className="space-y-0 md:space-y-10">
       {/* Netflix-style horizontal filter chips – mobile only */}
-      <div className="sticky top-[92px] z-40 bg-background/80 backdrop-blur-md py-2.5 px-4 -mx-4 block md:hidden">
+      <div className="sticky top-[84px] z-40 bg-background/80 backdrop-blur-md py-2.5 px-4 -mx-4 block md:hidden">
         <div className="flex overflow-x-auto scrollbar-hide gap-2">
           {CHIPS.map((chip) => (
             <button
