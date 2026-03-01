@@ -1,9 +1,16 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, Bell, AlertTriangle, Map, List, CheckCircle2, HardHat, TrendingUp, Smile } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { LogOut, Bell } from 'lucide-react';
+import { ProjectCarousel } from '@/components/ProjectCarousel';
+import { CategoryView } from '@/components/CategoryView';
+import { DashboardFilters, SortOption } from '@/components/DashboardFilters';
+import { CommandCenterMap } from '@/components/CommandCenterMap';
+import { AnalyticsPanel } from '@/components/AnalyticsPanel';
 import { useProjects } from '@/hooks/useProjects';
 import { Project } from '@/lib/externalDb';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+
+type ViewMode = 'projects' | 'categories';
+type StatusFilter = '' | 'In Progress' | 'Completed' | 'Planned';
 
 const MOCK_NOTIFICATIONS = [
   { id: 1, text: 'Ahmet Yılmaz Bilim Merkezi projesini güncelledi', projectId: '1', read: false },
@@ -12,34 +19,39 @@ const MOCK_NOTIFICATIONS = [
   { id: 4, text: 'Fen İşleri denetimi planlandı', projectId: '4', read: false },
 ];
 
-const MOCK_ALERTS = [
-  { id: 1, type: 'delay', text: 'Kepez Spor Kompleksi: İnşaat 2 hafta gecikiyor', time: '2 saat önce' },
-  { id: 2, type: 'budget', text: 'Altyapı Yenileme: Bütçe %15 aşıldı', time: '5 saat önce' },
-  { id: 3, type: 'update', text: 'Yeşil Park Projesi: Peyzaj tamamlandı', time: '1 gün önce' },
-  { id: 4, type: 'delay', text: 'Okul Onarımları: Malzeme tedarikinde gecikme', time: '1 gün önce' },
-  { id: 5, type: 'update', text: 'Yol Genişletme: Asfalt dökümü başladı', time: '2 gün önce' },
-];
-
-const CATEGORY_COLORS = [
-  'hsl(45, 85%, 55%)',   // accent gold
-  'hsl(160, 60%, 45%)',  // teal
-  'hsl(220, 60%, 55%)',  // blue
-  'hsl(0, 70%, 55%)',    // red
-  'hsl(280, 50%, 55%)',  // purple
-  'hsl(30, 80%, 55%)',   // orange
-  'hsl(190, 70%, 45%)',  // cyan
-];
-
-const formatBudget = (total: number): string => {
-  if (total >= 1_000_000_000) return `₺${(total / 1_000_000_000).toFixed(1)}B`;
-  if (total >= 1_000_000) return `₺${(total / 1_000_000).toFixed(0)}M`;
-  if (total >= 1_000) return `₺${(total / 1_000).toFixed(0)}K`;
-  return `₺${total.toFixed(0)}`;
+const sortProjects = (projects: Project[], sort: SortOption): Project[] => {
+  const sorted = [...projects];
+  switch (sort) {
+    case 'az':
+      return sorted.sort((a, b) => a.title.localeCompare(b.title, 'tr'));
+    case 'za':
+      return sorted.sort((a, b) => b.title.localeCompare(a.title, 'tr'));
+    case 'newest':
+      return sorted.sort((a, b) => {
+        const da = a.completion_date || a.created_at || '';
+        const db = b.completion_date || b.created_at || '';
+        return db.localeCompare(da);
+      });
+    case 'budget_desc':
+      return sorted.sort((a, b) => (b.budget || 0) - (a.budget || 0));
+    case 'budget_asc':
+      return sorted.sort((a, b) => (a.budget || 0) - (b.budget || 0));
+    default:
+      return sorted;
+  }
 };
 
 export const MayorDashboard = () => {
   const navigate = useNavigate();
   const { data: projects = [], isLoading } = useProjects();
+  const [viewMode, setViewMode] = useState<ViewMode>('projects');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('');
+  const [sort, setSort] = useState<SortOption>('newest');
+
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('');
+  const [district, setDistrict] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
@@ -63,36 +75,32 @@ export const MayorDashboard = () => {
     navigate(`/project/${notif.projectId}`);
   };
 
+  const filtered = useMemo(() => {
+    let result = projects;
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q) ||
+          p.category?.toLowerCase().includes(q)
+      );
+    }
+    if (statusFilter) result = result.filter((p) => p.status === statusFilter);
+    if (category) result = result.filter((p) => p.category === category);
+    if (district) result = result.filter((p) => p.district === district);
+    if (neighborhood) result = result.filter((p) => p.neighborhood === neighborhood);
+    return sortProjects(result, sort);
+  }, [projects, search, statusFilter, category, district, neighborhood, sort]);
+
+  const inProgress = filtered.filter((p) => p.status === 'In Progress');
+  const completed = filtered.filter((p) => p.status === 'Completed');
+  const planned = filtered.filter((p) => p.status === 'Planned');
+
   const handleLogout = () => {
     localStorage.removeItem('userRole');
     navigate('/');
   };
-
-  // KPI data
-  const totalActive = projects.filter(p => p.status === 'In Progress').length;
-  const totalCompleted = projects.filter(p => p.status === 'Completed').length;
-  const totalPlanned = projects.filter(p => p.status === 'Planned').length;
-  const riskCount = 3; // mocked
-  const satisfactionScore = 78; // mocked percentage
-
-  // Category distribution for donut
-  const categoryData = useMemo(() => {
-    const map: Record<string, number> = {};
-    projects.forEach(p => {
-      const cat = p.category || 'Diğer';
-      map[cat] = (map[cat] || 0) + 1;
-    });
-    return Object.entries(map)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [projects]);
-
-  const kpis = [
-    { label: 'Toplam Aktif Proje', value: totalActive.toString(), icon: HardHat, color: 'text-yellow-500' },
-    { label: 'Tamamlanan', value: totalCompleted.toString(), icon: CheckCircle2, color: 'text-green-500' },
-    { label: 'Riskli / Geciken', value: riskCount.toString(), icon: AlertTriangle, color: 'text-destructive' },
-    { label: 'Genel Memnuniyet', value: `%${satisfactionScore}`, icon: Smile, color: 'text-accent' },
-  ];
 
   if (isLoading) {
     return (
@@ -107,16 +115,45 @@ export const MayorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+       {/* Tier 1: Brand + Nav + User */}
       <header className="sticky top-0 z-[9999] bg-background border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2.5">
+          {/* Row 1: Brand + Icons (always), Nav links (desktop) */}
           <div className="flex items-center justify-between">
+            {/* Brand – resets all filters */}
             <button
-              onClick={() => navigate('/mayor')}
+              onClick={() => { setViewMode('projects'); setStatusFilter(''); setSearch(''); setCategory(''); setDistrict(''); setNeighborhood(''); setSort('newest'); }}
               className="text-base font-black uppercase tracking-[0.15em] text-accent flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
             >
               KEPEZ BELEDİYESİ
             </button>
+
+            {/* Nav Links – hidden on mobile, shown on md+ */}
+            <nav className="hidden md:flex items-center gap-1">
+              {([
+                { label: 'Tüm Projeler', status: '' as StatusFilter, mode: 'projects' as ViewMode },
+                { label: 'Devam Edenler', status: 'In Progress' as StatusFilter, mode: 'projects' as ViewMode },
+                { label: 'Tamamlananlar', status: 'Completed' as StatusFilter, mode: 'projects' as ViewMode },
+                { label: 'Planlananlar', status: 'Planned' as StatusFilter, mode: 'projects' as ViewMode },
+                { label: 'Kategoriler', status: '' as StatusFilter, mode: 'categories' as ViewMode },
+              ]).map((item) => {
+                const isActive = viewMode === item.mode && statusFilter === item.status && !(item.mode === 'projects' && item.status === '' && viewMode === 'categories');
+                const isActiveCategory = item.mode === 'categories' && viewMode === 'categories';
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => { setViewMode(item.mode); setStatusFilter(item.status); }}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
+                      isActive || isActiveCategory
+                        ? 'text-accent'
+                        : 'text-muted-foreground hover:text-accent'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
 
             {/* Right: Notifications + Profile */}
             <div className="flex items-center gap-2">
@@ -179,135 +216,90 @@ export const MayorDashboard = () => {
               </div>
             </div>
           </div>
+
+          {/* Row 2: Nav links on mobile – horizontally scrollable ribbon */}
+          <nav className="flex md:hidden items-center gap-3 overflow-x-auto scrollbar-hide py-2 -mx-4 px-4 pr-8">
+            {([
+              { label: 'Tüm Projeler', status: '' as StatusFilter, mode: 'projects' as ViewMode },
+              { label: 'Devam Edenler', status: 'In Progress' as StatusFilter, mode: 'projects' as ViewMode },
+              { label: 'Tamamlananlar', status: 'Completed' as StatusFilter, mode: 'projects' as ViewMode },
+              { label: 'Planlananlar', status: 'Planned' as StatusFilter, mode: 'projects' as ViewMode },
+              { label: 'Kategoriler', status: '' as StatusFilter, mode: 'categories' as ViewMode },
+            ]).map((item) => {
+              const isActive = viewMode === item.mode && statusFilter === item.status && !(item.mode === 'projects' && item.status === '' && viewMode === 'categories');
+              const isActiveCategory = item.mode === 'categories' && viewMode === 'categories';
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => { setViewMode(item.mode); setStatusFilter(item.status); }}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
+                    isActive || isActiveCategory
+                      ? 'text-accent bg-accent/10'
+                      : 'text-muted-foreground hover:text-accent'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
         </div>
       </header>
 
+      {/* Tier 2: Filters */}
+      <div className="sticky top-[52px] z-[9998] bg-background border-b border-border/50 shadow-sm">
+        <div className="max-w-[1440px] mx-auto px-4 py-2">
+          <DashboardFilters
+            projects={projects}
+            search={search}
+            onSearchChange={setSearch}
+            category={category}
+            onCategoryChange={setCategory}
+            district={district}
+            onDistrictChange={setDistrict}
+            neighborhood={neighborhood}
+            onNeighborhoodChange={setNeighborhood}
+            sort={sort}
+            onSortChange={setSort}
+          />
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="max-w-[1440px] mx-auto px-4 py-6 space-y-6">
-        {/* KPI Row */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {kpis.map((kpi) => (
-            <div
-              key={kpi.label}
-              className="relative overflow-hidden rounded-xl border border-border/30 bg-card/60 backdrop-blur-xl p-4 md:p-5"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <kpi.icon className={`w-6 h-6 ${kpi.color}`} />
-              </div>
-              <p className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">{kpi.value}</p>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-1">
-                {kpi.label}
-              </p>
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-white/[0.03] to-transparent" />
-            </div>
-          ))}
-        </section>
-
-        {/* Middle: Alerts + Chart/Nav */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Left: Alerts */}
-          <div className="md:col-span-2 rounded-xl border border-border/30 bg-card/60 backdrop-blur-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-border/30 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-accent" />
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Kritik Uyarılar ve Son Gelişmeler
-              </h3>
-            </div>
-            <div className="divide-y divide-border/20">
-              {MOCK_ALERTS.map((alert) => (
-                <div key={alert.id} className="px-4 py-3 flex items-start gap-3 hover:bg-secondary/20 transition-colors">
-                  <div className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                    alert.type === 'delay' ? 'bg-destructive' :
-                    alert.type === 'budget' ? 'bg-yellow-500' : 'bg-green-500'
-                  }`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground leading-snug">{alert.text}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{alert.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+      <main className="max-w-[1440px] mx-auto px-4 py-6 space-y-10">
+        {/* Command Center Hero: Map + Analytics */}
+        <section className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 lg:h-[420px]">
+          <div className="h-[350px] lg:h-full">
+            <CommandCenterMap projects={filtered} />
           </div>
-
-          {/* Right: Chart + Nav */}
-          <div className="md:col-span-1 space-y-4">
-            {/* Donut Chart */}
-            <div className="rounded-xl border border-border/30 bg-card/60 backdrop-blur-xl p-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
-                Proje Dağılımı
-              </h3>
-              <div className="w-full h-[180px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={45}
-                      outerRadius={75}
-                      paddingAngle={2}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {categoryData.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        background: 'hsl(220 20% 12%)',
-                        border: '1px solid hsl(220 20% 20%)',
-                        borderRadius: '8px',
-                        color: '#f2f2f2',
-                        fontSize: '12px',
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              {/* Legend */}
-              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
-                {categoryData.slice(0, 5).map((cat, i) => (
-                  <div key={cat.name} className="flex items-center gap-1.5">
-                    <span
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }}
-                    />
-                    <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{cat.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Navigation Buttons */}
-            <div className="space-y-2">
-              <Link
-                to="/harita"
-                className="flex items-center gap-3 w-full rounded-xl border border-border/30 bg-card/60 hover:bg-secondary/40 backdrop-blur-xl p-4 transition-colors group"
-              >
-                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                  <Map className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">🗺️ Haritayı Aç</p>
-                  <p className="text-[11px] text-muted-foreground">Kuşbakışı görünüm</p>
-                </div>
-              </Link>
-              <Link
-                to="/projeler"
-                className="flex items-center gap-3 w-full rounded-xl border border-border/30 bg-card/60 hover:bg-secondary/40 backdrop-blur-xl p-4 transition-colors group"
-              >
-                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                  <List className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">📋 Proje Listesi</p>
-                  <p className="text-[11px] text-muted-foreground">Detaylı kategori görünümü</p>
-                </div>
-              </Link>
-            </div>
+          <div className="h-auto lg:h-full">
+            <AnalyticsPanel projects={filtered} />
           </div>
         </section>
+
+        {viewMode === 'projects' ? (
+          <section className="space-y-10">
+            {inProgress.length > 0 && (
+              <ProjectCarousel projects={inProgress} title="In Progress" status="In Progress" />
+            )}
+            {completed.length > 0 && (
+              <ProjectCarousel projects={completed} title="Completed" status="Completed" />
+            )}
+            {planned.length > 0 && (
+              <ProjectCarousel projects={planned} title="Planned" status="Planned" />
+            )}
+            {filtered.length === 0 && (
+              <div className="text-center py-20 space-y-4">
+                <p className="text-3xl">📋</p>
+                <h3 className="text-xl font-semibold text-foreground">Proje bulunamadı</h3>
+                <p className="text-muted-foreground">Arama veya filtreleri değiştirmeyi deneyin</p>
+              </div>
+            )}
+          </section>
+        ) : (
+          <CategoryView projects={filtered} />
+        )}
+
       </main>
     </div>
   );
