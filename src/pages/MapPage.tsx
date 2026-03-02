@@ -40,12 +40,12 @@ const MapPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
-      <div className="relative h-[calc(100vh-7.5rem)] md:h-[calc(100vh-3.5rem)]">
+      <div className="relative h-[calc(100dvh-8.5rem)] md:h-[calc(100dvh-3.5rem)]">
         {/* Full-screen map */}
         <CommandCenterMap projects={filtered} />
 
         {/* Floating filter bar */}
-        <div className="absolute top-3 left-3 right-3 z-40 bg-background/90 backdrop-blur-md shadow-lg rounded-xl p-2 flex gap-2 overflow-x-auto scrollbar-hide">
+        <div className="absolute top-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-max z-[90] bg-background/95 backdrop-blur-md shadow-lg rounded-xl p-2 flex gap-2 overflow-x-auto scrollbar-hide border border-border/50 pointer-events-auto" onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
           {/* Mahalle */}
           <Select value={neighborhood || '__all__'} onValueChange={(v) => setNeighborhood(v === '__all__' ? '' : v)}>
             <SelectTrigger className="min-w-[130px] bg-card/80 border-border/50 text-sm h-9">

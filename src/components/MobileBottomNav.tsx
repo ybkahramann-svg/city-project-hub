@@ -14,7 +14,7 @@ export const MobileBottomNav = () => {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 w-full bg-background/95 backdrop-blur-md border-t border-border/60 pb-[env(safe-area-inset-bottom)] z-50 block md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 w-full bg-background/95 backdrop-blur-md border-t border-border/60 pb-[env(safe-area-inset-bottom)] z-[100] block md:hidden">
       <div className="flex items-end justify-around px-2 pt-1.5 pb-1.5">
         {NAV_ITEMS.map((item) => {
           const isActive = location.pathname === item.path;
