@@ -2,33 +2,33 @@ import { useState, useMemo } from 'react';
 import { useProjects } from '@/hooks/useProjects';
 import { CommandCenterMap } from '@/components/CommandCenterMap';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, FolderKanban, Activity } from 'lucide-react';
+import { DashboardFilters, SortOption } from '@/components/DashboardFilters';
 
 type StatusFilter = '' | 'In Progress' | 'Completed' | 'Planned';
 
 const MapPage = () => {
   const { data: projects = [], isLoading } = useProjects();
-  const [neighborhood, setNeighborhood] = useState('');
+  const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [district, setDistrict] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
   const [status, setStatus] = useState<StatusFilter>('');
-
-  const neighborhoods = useMemo(
-    () => [...new Set(projects.map((p) => p.neighborhood).filter(Boolean))].sort(),
-    [projects]
-  );
-  const categories = useMemo(
-    () => [...new Set(projects.map((p) => p.category).filter(Boolean))].sort(),
-    [projects]
-  );
+  const [sort, setSort] = useState<SortOption>('newest');
 
   const filtered = useMemo(() => {
     let result = projects;
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter((p) =>
+        p.title.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q)
+      );
+    }
     if (neighborhood) result = result.filter((p) => p.neighborhood === neighborhood);
+    if (district) result = result.filter((p) => p.district === district);
     if (category) result = result.filter((p) => p.category === category);
     if (status) result = result.filter((p) => p.status === status);
     return result;
-  }, [projects, neighborhood, category, status]);
+  }, [projects, search, neighborhood, district, category, status]);
 
   if (isLoading) {
     return (
@@ -39,60 +39,33 @@ const MapPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
-      <div className="relative h-[calc(100dvh-8.5rem)] md:h-[calc(100dvh-3.5rem)]">
-        {/* Full-screen map */}
-        <CommandCenterMap projects={filtered} />
+    <div className="flex flex-col h-[100dvh] bg-background">
+      {/* Spacer for GlobalHeader */}
+      <div className="h-14 shrink-0" />
 
-        {/* Floating filter bar */}
-        <div className="absolute top-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-max z-[90] bg-background/95 backdrop-blur-md shadow-lg rounded-xl p-2 flex gap-2 overflow-x-auto scrollbar-hide border border-border/50 pointer-events-auto" onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
-          {/* Mahalle */}
-          <Select value={neighborhood || '__all__'} onValueChange={(v) => setNeighborhood(v === '__all__' ? '' : v)}>
-            <SelectTrigger className="min-w-[130px] bg-card/80 border-border/50 text-sm h-9">
-              <div className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                <SelectValue placeholder="Mahalle" />
-              </div>
-            </SelectTrigger>
-            <SelectContent className="bg-popover border-border z-[9999]">
-              <SelectItem value="__all__">Tüm Mahalleler</SelectItem>
-              {neighborhoods.map((n) => (
-                <SelectItem key={n} value={n!}>{n}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Filter bar - above map, solid background */}
+      <div className="relative z-[999] bg-background border-b border-border/50 shadow-sm shrink-0">
+        <div className="px-3 py-2">
+          <DashboardFilters
+            projects={projects}
+            search={search}
+            onSearchChange={setSearch}
+            category={category}
+            onCategoryChange={setCategory}
+            district={district}
+            onDistrictChange={setDistrict}
+            neighborhood={neighborhood}
+            onNeighborhoodChange={setNeighborhood}
+            sort={sort}
+            onSortChange={setSort}
+          />
+        </div>
+      </div>
 
-          {/* Kategori */}
-          <Select value={category || '__all__'} onValueChange={(v) => setCategory(v === '__all__' ? '' : v)}>
-            <SelectTrigger className="min-w-[130px] bg-card/80 border-border/50 text-sm h-9">
-              <div className="flex items-center gap-1.5">
-                <FolderKanban className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                <SelectValue placeholder="Kategori" />
-              </div>
-            </SelectTrigger>
-            <SelectContent className="bg-popover border-border z-[9999]">
-              <SelectItem value="__all__">Tüm Kategoriler</SelectItem>
-              {categories.map((c) => (
-                <SelectItem key={c} value={c!}>{c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Durum */}
-          <Select value={status || '__all__'} onValueChange={(v) => setStatus((v === '__all__' ? '' : v) as StatusFilter)}>
-            <SelectTrigger className="min-w-[120px] bg-card/80 border-border/50 text-sm h-9">
-              <div className="flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                <SelectValue placeholder="Durum" />
-              </div>
-            </SelectTrigger>
-            <SelectContent className="bg-popover border-border z-[9999]">
-              <SelectItem value="__all__">Tüm Durumlar</SelectItem>
-              <SelectItem value="In Progress">Devam Eden</SelectItem>
-              <SelectItem value="Completed">Tamamlanan</SelectItem>
-              <SelectItem value="Planned">Planlanan</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Map - takes remaining space, leaves room for mobile bottom nav */}
+      <div className="relative z-0 flex-1 min-h-0 pb-[5rem] md:pb-0">
+        <div className="w-full h-full">
+          <CommandCenterMap projects={filtered} />
         </div>
       </div>
 
