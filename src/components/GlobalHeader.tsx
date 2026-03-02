@@ -36,6 +36,14 @@ export const GlobalHeader = () => {
 
         {/* Desktop-only: Map button + Admin */}
         <div className="hidden md:flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/projeler')}
+            className={`text-muted-foreground hover:text-foreground ${location.pathname === '/projeler' ? 'text-accent' : ''}`}
+          >
+            Projeler
+          </Button>
           {!isMapPage && (
             <Button
               variant="outline"
