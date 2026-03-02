@@ -126,6 +126,7 @@ export const MayorDashboard = () => {
       <header className="sticky top-0 z-[9998] bg-background border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
+            {/* Desktop: clean status tabs */}
             <nav className="hidden md:flex items-center gap-1">
               {([
                 { label: 'Tüm Projeler', status: '' as StatusFilter, mode: 'projects' as ViewMode },
