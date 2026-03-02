@@ -1,12 +1,12 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Bell, HardHat, CheckCircle, AlertTriangle, Wallet } from 'lucide-react';
-import { ProjectCarousel } from '@/components/ProjectCarousel';
 import { CategoryView } from '@/components/CategoryView';
 import { DashboardFilters, SortOption } from '@/components/DashboardFilters';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { useProjects } from '@/hooks/useProjects';
 import { Project } from '@/lib/externalDb';
+import { ProjectCard } from '@/components/ProjectCard';
 
 type ViewMode = 'projects' | 'categories';
 type StatusFilter = '' | 'In Progress' | 'Completed' | 'Planned';
@@ -126,6 +126,7 @@ export const MayorDashboard = () => {
       <header className="sticky top-0 z-[9998] bg-background border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
+            {/* Desktop: clean status tabs */}
             <nav className="hidden md:flex items-center gap-1">
               {([
                 { label: 'Tüm Projeler', status: '' as StatusFilter, mode: 'projects' as ViewMode },
@@ -270,10 +271,27 @@ export const MayorDashboard = () => {
 
         {/* Project Feed */}
         {viewMode === 'projects' ? (
-          <section className="space-y-10">
-            {inProgress.length > 0 && <ProjectCarousel projects={inProgress} title="In Progress" status="In Progress" />}
-            {completed.length > 0 && <ProjectCarousel projects={completed} title="Completed" status="Completed" />}
-            {planned.length > 0 && <ProjectCarousel projects={planned} title="Planned" status="Planned" />}
+          <section className="space-y-8">
+            {/* Status-grouped sections with vertical grid */}
+            {([
+              { items: inProgress, title: 'Devam Ediyor', status: 'In Progress' },
+              { items: completed, title: 'Tamamlandı', status: 'Completed' },
+              { items: planned, title: 'Planlanıyor', status: 'Planned' },
+            ] as const).map(({ items, title }) =>
+              items.length > 0 ? (
+                <div key={title} className="space-y-4">
+                  <div className="flex items-center gap-3 px-1">
+                    <h2 className="text-xl font-bold text-foreground">{title}</h2>
+                    <span className="text-sm text-muted-foreground font-medium">({items.length} proje)</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                    {items.map((project) => (
+                      <ProjectCard key={project.id} project={project} />
+                    ))}
+                  </div>
+                </div>
+              ) : null
+            )}
             {filtered.length === 0 && (
               <div className="text-center py-20 space-y-4">
                 <p className="text-3xl">📋</p>
