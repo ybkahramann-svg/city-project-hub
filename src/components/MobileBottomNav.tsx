@@ -1,8 +1,9 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Map, Plus, Settings } from 'lucide-react';
+import { Home, Map, FolderOpen, Plus, Settings } from 'lucide-react';
 
 const NAV_ITEMS = [
   { icon: Home, label: 'Ana Sayfa', path: '/mayor' },
+  { icon: FolderOpen, label: 'Projeler', path: '/projeler' },
   { icon: Map, label: 'Harita', path: '/harita' },
   { icon: Plus, label: 'Ekle', path: '/admin', isCenter: true },
   { icon: Settings, label: 'Admin', path: '/admin' },
