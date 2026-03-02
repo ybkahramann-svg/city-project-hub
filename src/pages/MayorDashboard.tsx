@@ -7,11 +7,6 @@ import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { useProjects } from '@/hooks/useProjects';
 import { Project } from '@/lib/externalDb';
 import { ProjectCard } from '@/components/ProjectCard';
-import { CategoryView } from '@/components/CategoryView';
-import { DashboardFilters, SortOption } from '@/components/DashboardFilters';
-import { MobileBottomNav } from '@/components/MobileBottomNav';
-import { useProjects } from '@/hooks/useProjects';
-import { Project } from '@/lib/externalDb';
 
 type ViewMode = 'projects' | 'categories';
 type StatusFilter = '' | 'In Progress' | 'Completed' | 'Planned';
