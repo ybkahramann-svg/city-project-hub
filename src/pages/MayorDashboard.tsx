@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { HardHat, CheckCircle, AlertTriangle, Wallet, ArrowRight } from 'lucide-react';
+import { HardHat, CheckCircle, AlertTriangle, Wallet } from 'lucide-react';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { useProjects } from '@/hooks/useProjects';
-import { ProjectListItem } from '@/components/ProjectListItem';
-import { Button } from '@/components/ui/button';
+import { TendersList } from '@/components/TendersList';
+import { NewsFeed } from '@/components/NewsFeed';
+import { MegaProjectsCarousel } from '@/components/MegaProjectsCarousel';
 
 const formatBudget = (total: number): string => {
   if (total >= 1_000_000_000) return `₺${(total / 1_000_000_000).toFixed(1)}B`;
@@ -14,7 +14,6 @@ const formatBudget = (total: number): string => {
 };
 
 export const MayorDashboard = () => {
-  const navigate = useNavigate();
   const { data: projects = [], isLoading } = useProjects();
 
   const inProgress = useMemo(() => projects.filter((p) => p.status === 'In Progress'), [projects]);
@@ -22,22 +21,12 @@ export const MayorDashboard = () => {
   const atRisk = useMemo(() => projects.filter((p) => p.status === 'In Progress' && (p.progress || 0) < 30).length, [projects]);
   const totalBudget = useMemo(() => projects.reduce((s, p) => s + (p.budget || 0), 0), [projects]);
 
-  // Top 4 most recent / active projects for highlights
-  const highlights = useMemo(() => {
-    const sorted = [...projects].sort((a, b) => {
-      const da = a.completion_date || a.created_at || '';
-      const db = b.completion_date || b.created_at || '';
-      return db.localeCompare(da);
-    });
-    return sorted.slice(0, 4);
-  }, [projects]);
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-border border-t-accent rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">Projeler yükleniyor...</p>
+          <p className="text-muted-foreground">Yükleniyor...</p>
         </div>
       </div>
     );
@@ -53,7 +42,7 @@ export const MayorDashboard = () => {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <main className="max-w-[1440px] mx-auto px-4 py-6 space-y-8">
-        {/* Executive KPI Hero */}
+        {/* KPI Hero */}
         <section>
           <h1 className="text-xl font-bold tracking-tight text-foreground mb-4">İlçe Yönetim Özeti</h1>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -72,26 +61,14 @@ export const MayorDashboard = () => {
           </div>
         </section>
 
-        {/* Highlights */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-bold text-foreground px-1">Öne Çıkanlar</h2>
-          <div className="rounded-lg border border-border/40 overflow-hidden bg-card/30">
-            {highlights.map((project) => (
-              <ProjectListItem key={project.id} project={project} />
-            ))}
-          </div>
-          <div className="flex justify-center pt-2">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => navigate('/projeler')}
-              className="gap-2 font-semibold"
-            >
-              Tüm Projeleri Gör
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </div>
+        {/* Tenders + News split */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TendersList />
+          <NewsFeed />
         </section>
+
+        {/* Mega Projects Carousel */}
+        <MegaProjectsCarousel />
       </main>
 
       <MobileBottomNav />

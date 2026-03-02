@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Landmark, ArrowLeft, Map } from 'lucide-react';
+import { Landmark, ArrowLeft, Map, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const SUB_PAGES = ['/admin/project/', '/project/'];
@@ -35,7 +35,7 @@ export const GlobalHeader = () => {
         </div>
 
         {/* Desktop-only: Map button + Admin */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-1">
           <Button
             variant="ghost"
             size="sm"
@@ -46,15 +46,25 @@ export const GlobalHeader = () => {
           </Button>
           {!isMapPage && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => navigate('/harita')}
-              className="gap-1.5"
+              className={`gap-1.5 text-muted-foreground hover:text-foreground ${location.pathname === '/harita' ? 'text-accent' : ''}`}
             >
               <Map className="w-4 h-4" />
-              Haritayı Aç
+              Harita
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/haberler')}
+            className={`gap-1.5 text-muted-foreground hover:text-foreground ${location.pathname === '/haberler' ? 'text-accent' : ''}`}
+          >
+            <Newspaper className="w-4 h-4" />
+            Haberler
+          </Button>
+          <div className="w-px h-5 bg-border/60 mx-1" />
           <Button
             variant="ghost"
             size="sm"
