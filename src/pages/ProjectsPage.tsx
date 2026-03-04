@@ -5,9 +5,9 @@ import { CategoryView } from '@/components/CategoryView';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { ProjectListItem } from '@/components/ProjectListItem';
 import { Project } from '@/lib/externalDb';
+import { LayoutGrid, List } from 'lucide-react';
 
 type ViewMode = 'list' | 'categories';
-type StatusFilter = '' | 'In Progress' | 'Completed' | 'Planned';
 
 const sortProjects = (projects: Project[], sort: SortOption): Project[] => {
   const sorted = [...projects];
@@ -28,12 +28,13 @@ const sortProjects = (projects: Project[], sort: SortOption): Project[] => {
 export const ProjectsPage = () => {
   const { data: projects = [], isLoading } = useProjects();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('');
   const [sort, setSort] = useState<SortOption>('newest');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [district, setDistrict] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
+  const [status, setStatus] = useState('');
+  const [department, setDepartment] = useState('');
 
   const filtered = useMemo(() => {
     let result = projects;
@@ -43,12 +44,13 @@ export const ProjectsPage = () => {
         p.title.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q)
       );
     }
-    if (statusFilter) result = result.filter((p) => p.status === statusFilter);
+    if (status) result = result.filter((p) => p.status === status);
     if (category) result = result.filter((p) => p.category === category);
     if (district) result = result.filter((p) => p.district === district);
     if (neighborhood) result = result.filter((p) => p.neighborhood === neighborhood);
+    if (department) result = result.filter((p) => p.department === department);
     return sortProjects(result, sort);
-  }, [projects, search, statusFilter, category, district, neighborhood, sort]);
+  }, [projects, search, status, category, district, neighborhood, department, sort]);
 
   if (isLoading) {
     return (
@@ -61,45 +63,10 @@ export const ProjectsPage = () => {
     );
   }
 
-  const STATUS_TABS: { label: string; value: StatusFilter }[] = [
-    { label: 'Tümü', value: '' },
-    { label: 'Devam Edenler', value: 'In Progress' },
-    { label: 'Tamamlananlar', value: 'Completed' },
-    { label: 'Planlananlar', value: 'Planned' },
-  ];
-
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
-      {/* Status tabs */}
-      <div className="sticky top-14 z-[9997] bg-background border-b border-border/50">
-        <div className="max-w-[1440px] mx-auto px-4">
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2">
-            {STATUS_TABS.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setStatusFilter(tab.value)}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
-                  statusFilter === tab.value ? 'text-accent bg-accent/10' : 'text-muted-foreground hover:text-accent'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-            <div className="w-px h-5 bg-border/60 mx-1 flex-shrink-0" />
-            <button
-              onClick={() => setViewMode(viewMode === 'list' ? 'categories' : 'list')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-colors whitespace-nowrap flex-shrink-0 ${
-                viewMode === 'categories' ? 'text-accent bg-accent/10' : 'text-muted-foreground hover:text-accent'
-              }`}
-            >
-              Kategoriler
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="sticky top-[calc(3.5rem+44px)] z-[9996] bg-background border-b border-border/50 shadow-sm">
+      {/* Single filter bar */}
+      <div className="sticky top-14 z-[9997] bg-background border-b border-border/50 shadow-sm">
         <div className="max-w-[1440px] mx-auto px-4 py-2">
           <DashboardFilters
             projects={projects}
@@ -113,34 +80,46 @@ export const ProjectsPage = () => {
             onNeighborhoodChange={setNeighborhood}
             sort={sort}
             onSortChange={setSort}
+            status={status}
+            onStatusChange={setStatus}
+            department={department}
+            onDepartmentChange={setDepartment}
           />
         </div>
       </div>
 
       {/* Content */}
-      <main className="max-w-[1440px] mx-auto px-4 py-6">
-        <div className="flex items-center gap-3 mb-4 px-1">
-          <h1 className="text-xl font-bold text-foreground">Projeler</h1>
-          <span className="text-sm text-muted-foreground font-medium">({filtered.length} proje)</span>
+      <main className="max-w-[1440px] mx-auto px-4 py-4">
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-bold text-foreground">Projeler</h1>
+            <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded-full">{filtered.length}</span>
+          </div>
+          <button
+            onClick={() => setViewMode(viewMode === 'list' ? 'categories' : 'list')}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-accent transition-colors px-2 py-1 rounded-md hover:bg-muted/50"
+          >
+            {viewMode === 'list' ? <LayoutGrid className="w-3.5 h-3.5" /> : <List className="w-3.5 h-3.5" />}
+            {viewMode === 'list' ? 'Kategoriler' : 'Liste'}
+          </button>
         </div>
 
         {viewMode === 'list' ? (
           filtered.length > 0 ? (
-            <>
-              {/* Desktop table header */}
-              <div className="hidden md:flex items-center gap-4 px-3 py-2 border-b border-border/60 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                <div className="w-14 flex-shrink-0" />
+            <div className="rounded-lg border border-border/40 overflow-hidden bg-card/20">
+              {/* Desktop header */}
+              <div className="hidden md:flex items-center gap-4 px-4 py-2 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold bg-muted/30">
+                <div className="w-11 flex-shrink-0" />
                 <div className="flex-1 min-w-0">Proje</div>
-                <div className="w-[140px] flex-shrink-0">Konum</div>
-                <div className="w-[160px] flex-shrink-0">Durum</div>
-                <div className="w-[120px] flex-shrink-0 text-right">Bütçe</div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="w-[72px]">Durum</div>
+                  <div className="w-[120px]">İlerleme</div>
+                </div>
               </div>
-              <div className="rounded-lg border border-border/40 overflow-hidden bg-card/30 md:rounded-lg md:border">
-                {filtered.map((project) => (
-                  <ProjectListItem key={project.id} project={project} />
-                ))}
-              </div>
-            </>
+              {filtered.map((project) => (
+                <ProjectListItem key={project.id} project={project} />
+              ))}
+            </div>
           ) : (
             <div className="text-center py-20 space-y-4">
               <p className="text-3xl">📋</p>
