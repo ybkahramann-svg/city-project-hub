@@ -10,6 +10,7 @@ import MayorDashboard from "./pages/MayorDashboard";
 import MapPage from "./pages/MapPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import HaberlerPage from "./pages/HaberlerPage";
+import HizmetlerPage from "./pages/HizmetlerPage";
 import AdminPanel from "./pages/AdminPanel";
 import AdminProjectDetail from "./pages/AdminProjectDetail";
 import ProjectDetail from "./pages/ProjectDetail";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/projeler" element={<ProjectsPage />} />
             <Route path="/kategoriler" element={<ProjectsPage />} />
             <Route path="/haberler" element={<HaberlerPage />} />
+            <Route path="/hizmetler" element={<HizmetlerPage />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/admin/project/:id" element={<AdminProjectDetail />} />
             <Route path="/project/:id" element={<ProjectDetail />} />
