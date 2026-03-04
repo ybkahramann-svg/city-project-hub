@@ -10,6 +10,7 @@ import MayorDashboard from "./pages/MayorDashboard";
 import MapPage from "./pages/MapPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import HaberlerPage from "./pages/HaberlerPage";
+import HizmetlerPage from "./pages/HizmetlerPage";
 import AdminPanel from "./pages/AdminPanel";
 import AdminProjectDetail from "./pages/AdminProjectDetail";
 import ProjectDetail from "./pages/ProjectDetail";
