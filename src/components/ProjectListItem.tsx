@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Calendar, MapPin, Building2, Tag, Banknote } from 'lucide-react';
+import { CheckCircle2, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Project } from '@/lib/externalDb';
@@ -17,9 +17,7 @@ const formatTurkishDate = (dateStr: string) => {
 
 const formatBudget = (budget?: number) => {
   if (!budget) return null;
-  if (budget >= 1_000_000) return `${(budget / 1_000_000).toFixed(1)}M TL`;
-  if (budget >= 1_000) return `${(budget / 1_000).toFixed(0)}K TL`;
-  return `${budget.toLocaleString('tr-TR')} TL`;
+  return budget.toLocaleString('tr-TR') + ' TL';
 };
 
 const statusConfig = {
@@ -37,14 +35,9 @@ export const ProjectListItem = ({ project }: ProjectListItemProps) => {
   const cfg = statusConfig[project.status as keyof typeof statusConfig] || statusConfig['Planned'];
   const budgetStr = formatBudget(project.budget);
 
-  const metaItems = [
-    project.neighborhood && { icon: MapPin, text: project.neighborhood },
-    project.department && { icon: Building2, text: project.department },
-    project.category && { icon: Tag, text: project.category },
-    budgetStr && { icon: Banknote, text: `Bütçe: ${budgetStr}` },
-  ].filter(Boolean) as { icon: React.ElementType; text: string }[];
+  const metaParts = [project.neighborhood, project.department, project.category].filter(Boolean);
 
-  const renderStatus = () => {
+  const renderProgress = () => {
     if (project.status === 'In Progress') {
       const pct = project.progress || 0;
       return (
@@ -79,71 +72,76 @@ export const ProjectListItem = ({ project }: ProjectListItemProps) => {
       {/* ===== MOBILE (< md) ===== */}
       <button
         onClick={() => navigate(`/project/${project.id}`)}
-        className="flex md:hidden flex-row gap-3 p-3 border-b border-border/40 items-start w-full text-left active:bg-muted/30 transition-colors"
+        className="flex md:hidden flex-col gap-2 p-3 border-b border-border/40 w-full text-left active:bg-muted/30 transition-colors"
       >
-        <div className="w-14 h-14 rounded-md overflow-hidden flex-shrink-0 bg-muted">
-          {project.image_url ? (
-            <img src={project.image_url} alt={project.title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">—</div>
-          )}
-        </div>
-
-        <div className="flex flex-col flex-1 min-w-0 gap-1">
-          <p className="text-sm font-semibold leading-tight text-foreground line-clamp-1">{project.title}</p>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
-            {project.neighborhood && <span>📍 {project.neighborhood}</span>}
-            {project.category && <span>• {project.category}</span>}
-            {budgetStr && <span className="opacity-60">• {budgetStr}</span>}
-          </div>
-          <div className="flex items-center justify-between mt-1">
-            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 font-medium border ${cfg.className}`}>
-              {cfg.label}
-            </Badge>
-            {project.status === 'In Progress' && (
-              <span className="text-[11px] font-semibold text-muted-foreground">%{project.progress || 0}</span>
+        <div className="flex gap-3 items-start">
+          <div className="w-14 h-14 rounded-md overflow-hidden flex-shrink-0 bg-muted">
+            {project.image_url ? (
+              <img src={project.image_url} alt={project.title} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">—</div>
             )}
           </div>
+          <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+            <p className="text-sm font-semibold leading-tight text-foreground line-clamp-1">{project.title}</p>
+            {metaParts.length > 0 && (
+              <p className="text-[11px] text-muted-foreground font-medium truncate">
+                {metaParts.join(' • ')}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 font-medium border ${cfg.className}`}>
+            {cfg.label}
+          </Badge>
+          {budgetStr && (
+            <span className="text-[11px] text-muted-foreground font-medium opacity-60">{budgetStr}</span>
+          )}
         </div>
       </button>
 
       {/* ===== DESKTOP (≥ md) ===== */}
       <button
         onClick={() => navigate(`/project/${project.id}`)}
-        className="hidden md:flex w-full items-center gap-4 px-4 py-3 border-b border-border/30 hover:bg-muted/30 transition-colors text-left group"
+        className="hidden md:flex w-full flex-col gap-1.5 px-4 py-3 border-b border-border/30 hover:bg-muted/30 transition-colors text-left group"
       >
-        {/* Thumbnail */}
-        <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-          {project.image_url ? (
-            <img src={project.image_url} alt={project.title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-[10px]">—</div>
-          )}
-        </div>
+        <div className="flex items-center gap-4">
+          {/* Thumbnail */}
+          <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+            {project.image_url ? (
+              <img src={project.image_url} alt={project.title} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-[10px]">—</div>
+            )}
+          </div>
 
-        {/* Title + Meta */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate group-hover:text-accent transition-colors">
-            {project.title}
-          </p>
-          <div className="flex items-center gap-x-3 mt-0.5 text-[11px] text-muted-foreground font-medium">
-            {metaItems.map((item, i) => (
-              <span key={i} className={`flex items-center gap-1 ${item.icon === Banknote ? 'opacity-50' : ''}`}>
-                <item.icon className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate max-w-[140px]">{item.text}</span>
-              </span>
-            ))}
+          {/* Title + Meta */}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground truncate group-hover:text-accent transition-colors">
+              {project.title}
+            </p>
+            {metaParts.length > 0 && (
+              <p className="text-[11px] text-muted-foreground font-medium mt-0.5 truncate">
+                {metaParts.join(' • ')}
+              </p>
+            )}
+          </div>
+
+          {/* Progress */}
+          <div className="w-[140px] flex-shrink-0">
+            {renderProgress()}
           </div>
         </div>
 
-        {/* Status badge + progress */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        {/* Bottom row: status left, budget right */}
+        <div className="flex items-center justify-between ml-[60px]">
           <Badge variant="outline" className={`text-[10px] px-2 py-0.5 h-5 font-semibold border ${cfg.className}`}>
             {cfg.label}
           </Badge>
-          <div className="w-[120px]">
-            {renderStatus()}
-          </div>
+          {budgetStr && (
+            <span className="text-[11px] text-muted-foreground font-medium opacity-50">{budgetStr}</span>
+          )}
         </div>
       </button>
     </>
