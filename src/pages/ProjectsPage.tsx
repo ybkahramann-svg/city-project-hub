@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useProjects } from '@/hooks/useProjects';
 import { DashboardFilters, SortOption } from '@/components/DashboardFilters';
-import { CategoryView } from '@/components/CategoryView';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { ProjectListItem } from '@/components/ProjectListItem';
+import { ProjectCardView } from '@/components/ProjectCardView';
 import { Project } from '@/lib/externalDb';
 import { LayoutGrid, List } from 'lucide-react';
 
-type ViewMode = 'list' | 'categories';
+type ViewMode = 'list' | 'cards';
 
 const sortProjects = (projects: Project[], sort: SortOption): Project[] => {
   const sorted = [...projects];
@@ -95,40 +95,49 @@ export const ProjectsPage = () => {
             <h1 className="text-lg font-bold text-foreground">Projeler</h1>
             <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded-full">{filtered.length}</span>
           </div>
-          <button
-            onClick={() => setViewMode(viewMode === 'list' ? 'categories' : 'list')}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-accent transition-colors px-2 py-1 rounded-md hover:bg-muted/50"
-          >
-            {viewMode === 'list' ? <LayoutGrid className="w-3.5 h-3.5" /> : <List className="w-3.5 h-3.5" />}
-            {viewMode === 'list' ? 'Kategoriler' : 'Liste'}
-          </button>
+          <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              title="Liste Görünümü"
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'cards' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              title="Kart Görünümü"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {viewMode === 'list' ? (
-          filtered.length > 0 ? (
+        {filtered.length > 0 ? (
+          viewMode === 'list' ? (
             <div className="rounded-lg border border-border/40 overflow-hidden bg-card/20">
               {/* Desktop header */}
               <div className="hidden md:flex items-center gap-4 px-4 py-2 border-b border-border/50 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold bg-muted/30">
                 <div className="w-11 flex-shrink-0" />
                 <div className="flex-1 min-w-0">Proje</div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="w-[72px]">Durum</div>
-                  <div className="w-[120px]">İlerleme</div>
-                </div>
+                <div className="w-[140px] flex-shrink-0">İlerleme</div>
               </div>
               {filtered.map((project) => (
                 <ProjectListItem key={project.id} project={project} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 space-y-4">
-              <p className="text-3xl">📋</p>
-              <h3 className="text-xl font-semibold text-foreground">Proje bulunamadı</h3>
-              <p className="text-muted-foreground">Arama veya filtreleri değiştirmeyi deneyin</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filtered.map((project) => (
+                <ProjectCardView key={project.id} project={project} />
+              ))}
             </div>
           )
         ) : (
-          <CategoryView projects={filtered} />
+          <div className="text-center py-20 space-y-4">
+            <h3 className="text-xl font-semibold text-foreground">Proje bulunamadı</h3>
+            <p className="text-muted-foreground">Arama veya filtreleri değiştirmeyi deneyin</p>
+          </div>
         )}
       </main>
 
