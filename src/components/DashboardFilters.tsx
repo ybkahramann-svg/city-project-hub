@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Search, ArrowUpDown, MapPin, Home, FolderKanban } from 'lucide-react';
+import { Search, ArrowUpDown, MapPin, Home, FolderKanban, Building2, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Project } from '@/lib/externalDb';
@@ -18,6 +18,10 @@ interface DashboardFiltersProps {
   onNeighborhoodChange: (val: string) => void;
   sort: SortOption;
   onSortChange: (val: SortOption) => void;
+  status?: string;
+  onStatusChange?: (val: string) => void;
+  department?: string;
+  onDepartmentChange?: (val: string) => void;
 }
 
 export const DashboardFilters = ({
@@ -32,6 +36,10 @@ export const DashboardFilters = ({
   onNeighborhoodChange,
   sort,
   onSortChange,
+  status = '',
+  onStatusChange,
+  department = '',
+  onDepartmentChange,
 }: DashboardFiltersProps) => {
   const categories = useMemo(
     () => [...new Set(projects.map((p) => p.category).filter(Boolean))].sort(),
@@ -56,6 +64,11 @@ export const DashboardFilters = ({
     [projects, district]
   );
 
+  const departments = useMemo(
+    () => [...new Set(projects.map((p) => p.department).filter(Boolean))].sort(),
+    [projects]
+  );
+
   return (
     <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
       {/* Search */}
@@ -70,17 +83,17 @@ export const DashboardFilters = ({
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-2 gap-2 md:flex md:items-center md:gap-3 md:flex-shrink-0">
+      <div className="grid grid-cols-2 gap-2 md:flex md:items-center md:gap-2 md:flex-shrink-0">
         {/* Category */}
         {onCategoryChange && (
           <Select
             value={category || '__all__'}
             onValueChange={(val) => onCategoryChange(val === '__all__' ? '' : val)}
           >
-            <SelectTrigger className="w-full md:w-[160px] bg-card border-border/50 text-foreground text-sm">
-              <div className="flex items-center gap-2">
+            <SelectTrigger className="w-full md:w-[140px] bg-card border-border/50 text-foreground text-xs h-9">
+              <div className="flex items-center gap-1.5">
                 <FolderKanban className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                <SelectValue placeholder="Tüm Kategoriler" />
+                <SelectValue placeholder="Kategori" />
               </div>
             </SelectTrigger>
             <SelectContent className="bg-popover border-border z-[9999]">
@@ -100,10 +113,10 @@ export const DashboardFilters = ({
             onNeighborhoodChange('');
           }}
         >
-          <SelectTrigger className="w-full md:w-[160px] bg-card border-border/50 text-foreground text-sm">
-            <div className="flex items-center gap-2">
+          <SelectTrigger className="w-full md:w-[140px] bg-card border-border/50 text-foreground text-xs h-9">
+            <div className="flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-              <SelectValue placeholder="Tüm İlçeler" />
+              <SelectValue placeholder="İlçe" />
             </div>
           </SelectTrigger>
           <SelectContent className="bg-popover border-border z-[9999]">
@@ -119,10 +132,10 @@ export const DashboardFilters = ({
           value={neighborhood || '__all__'}
           onValueChange={(val) => onNeighborhoodChange(val === '__all__' ? '' : val)}
         >
-          <SelectTrigger className="w-full md:w-[160px] bg-card border-border/50 text-foreground text-sm">
-            <div className="flex items-center gap-2">
+          <SelectTrigger className="w-full md:w-[140px] bg-card border-border/50 text-foreground text-xs h-9">
+            <div className="flex items-center gap-1.5">
               <Home className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-              <SelectValue placeholder="Tüm Mahalleler" />
+              <SelectValue placeholder="Mahalle" />
             </div>
           </SelectTrigger>
           <SelectContent className="bg-popover border-border z-[9999]">
@@ -133,24 +146,64 @@ export const DashboardFilters = ({
           </SelectContent>
         </Select>
 
-        {/* Sort */}
-        <div className="col-span-2 md:col-span-1">
-          <Select value={sort} onValueChange={(val) => onSortChange(val as SortOption)}>
-            <SelectTrigger className="w-full md:w-[170px] bg-card border-border/50 text-foreground text-sm">
-              <div className="flex items-center gap-2">
-                <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                <SelectValue />
+        {/* Department */}
+        {onDepartmentChange && (
+          <Select
+            value={department || '__all__'}
+            onValueChange={(val) => onDepartmentChange(val === '__all__' ? '' : val)}
+          >
+            <SelectTrigger className="w-full md:w-[150px] bg-card border-border/50 text-foreground text-xs h-9">
+              <div className="flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <SelectValue placeholder="Müdürlük" />
               </div>
             </SelectTrigger>
             <SelectContent className="bg-popover border-border z-[9999]">
-              <SelectItem value="newest">Yeniden Eskiye</SelectItem>
-              <SelectItem value="az">A-Z</SelectItem>
-              <SelectItem value="za">Z-A</SelectItem>
-              <SelectItem value="budget_desc">Bütçe (Azalan)</SelectItem>
-              <SelectItem value="budget_asc">Bütçe (Artan)</SelectItem>
+              <SelectItem value="__all__">Tüm Müdürlükler</SelectItem>
+              {departments.map((d) => (
+                <SelectItem key={d} value={d!}>{d}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
-        </div>
+        )}
+
+        {/* Status */}
+        {onStatusChange && (
+          <Select
+            value={status || '__all__'}
+            onValueChange={(val) => onStatusChange(val === '__all__' ? '' : val)}
+          >
+            <SelectTrigger className="w-full md:w-[130px] bg-card border-border/50 text-foreground text-xs h-9">
+              <div className="flex items-center gap-1.5">
+                <Filter className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <SelectValue placeholder="Durum" />
+              </div>
+            </SelectTrigger>
+            <SelectContent className="bg-popover border-border z-[9999]">
+              <SelectItem value="__all__">Tüm Durumlar</SelectItem>
+              <SelectItem value="In Progress">Devam Edenler</SelectItem>
+              <SelectItem value="Completed">Tamamlananlar</SelectItem>
+              <SelectItem value="Planned">Planlananlar</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+
+        {/* Sort */}
+        <Select value={sort} onValueChange={(val) => onSortChange(val as SortOption)}>
+          <SelectTrigger className="w-full md:w-[150px] bg-card border-border/50 text-foreground text-xs h-9">
+            <div className="flex items-center gap-1.5">
+              <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+              <SelectValue />
+            </div>
+          </SelectTrigger>
+          <SelectContent className="bg-popover border-border z-[9999]">
+            <SelectItem value="newest">Yeniden Eskiye</SelectItem>
+            <SelectItem value="az">A-Z</SelectItem>
+            <SelectItem value="za">Z-A</SelectItem>
+            <SelectItem value="budget_desc">Bütçe (Azalan)</SelectItem>
+            <SelectItem value="budget_asc">Bütçe (Artan)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
