@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Landmark, ArrowLeft, Map, Newspaper } from 'lucide-react';
+import { Landmark, ArrowLeft, Map, Newspaper, HeartHandshake } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const SUB_PAGES = ['/admin/project/', '/project/'];
@@ -63,6 +63,15 @@ export const GlobalHeader = () => {
           >
             <Newspaper className="w-4 h-4" />
             Haberler
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/hizmetler')}
+            className={`gap-1.5 text-muted-foreground hover:text-foreground ${location.pathname === '/hizmetler' ? 'text-accent' : ''}`}
+          >
+            <HeartHandshake className="w-4 h-4" />
+            Hizmetler
           </Button>
           <div className="w-px h-5 bg-border/60 mx-1" />
           <Button
