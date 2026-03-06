@@ -42,7 +42,7 @@ export const TendersList = () => {
         </div>
         <div className="divide-y divide-border/30">
           {UPCOMING_TENDERS.map((t) => (
-            <Link key={t.id} to="/haberler" className="px-4 py-3 flex items-center gap-3 hover:bg-accent/5 transition-colors cursor-pointer block">
+            <Link key={t.id} to="/ihaleler" className="px-4 py-3 flex items-center gap-3 hover:bg-accent/5 transition-colors cursor-pointer block">
               <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
                 <Clock className="w-4 h-4 text-accent" />
               </div>
@@ -66,7 +66,7 @@ export const TendersList = () => {
         </div>
         <div className="divide-y divide-border/30">
           {CONCLUDED_TENDERS.map((t) => (
-            <Link key={t.id} to="/haberler" className="px-4 py-3 flex items-center gap-3 hover:bg-accent/5 transition-colors cursor-pointer block">
+            <Link key={t.id} to="/ihaleler" className="px-4 py-3 flex items-center gap-3 hover:bg-accent/5 transition-colors cursor-pointer block">
               <div className="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
                 <TrendingUp className="w-4 h-4 text-green-500" />
               </div>
