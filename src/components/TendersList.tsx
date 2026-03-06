@@ -28,12 +28,10 @@ export const TendersList = () => {
   return (
     <div className="rounded-xl border border-border/40 bg-card/50 overflow-hidden flex flex-col">
       <div className="px-4 py-3 border-b border-border/40 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <Link to="/ihaleler" className="flex items-center gap-2 hover:opacity-70 transition-opacity">
           <Gavel className="w-4 h-4 text-accent" />
           <h3 className="text-sm font-bold text-foreground">İhaleler</h3>
-        </div>
-        <Link to="/haberler" className="text-[11px] text-muted-foreground hover:text-accent transition-colors flex items-center gap-0.5 font-medium">
-          Tümünü Gör <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </Link>
       </div>
 

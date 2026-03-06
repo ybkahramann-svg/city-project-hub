@@ -15,6 +15,7 @@ import ProfilPage from "./pages/ProfilPage";
 import AdminPanel from "./pages/AdminPanel";
 import AdminProjectDetail from "./pages/AdminProjectDetail";
 import ProjectDetail from "./pages/ProjectDetail";
+import IhalelerPage from "./pages/IhalelerPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/projeler" element={<ProjectsPage />} />
             <Route path="/kategoriler" element={<ProjectsPage />} />
             <Route path="/haberler" element={<HaberlerPage />} />
+            <Route path="/ihaleler" element={<IhalelerPage />} />
             <Route path="/hizmetler" element={<HizmetlerPage />} />
             <Route path="/profil" element={<ProfilPage />} />
             <Route path="/admin" element={<AdminPanel />} />
