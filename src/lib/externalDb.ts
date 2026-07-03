@@ -4,7 +4,13 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = "https://vduwcjfddwcrtpvkihxp.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkdXdjamZkZHdjcnRwdmtpaHhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyMDcwNDMsImV4cCI6MjA4NTc4MzA0M30.l0DqagpLy3xEcZsXh79jCJSJVXcUUXftGg-Ernp-kI0";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});
 
 export interface Project {
   id: string;
