@@ -59,8 +59,24 @@ import {
   CalendarClock,
   UploadCloud,
 } from 'lucide-react';
-import { addProject, updateProject, deleteProject, Project } from '@/lib/externalDb';
-import { useProjects } from '@/hooks/useProjects';
+import { useProjects, type Project } from '@/hooks/useProjects';
+import { useCurrentProfile } from '@/hooks/useCurrentProfile';
+import { supabase } from '@/integrations/supabase/client';
+
+const addProject = async (project: Record<string, unknown>) => {
+  const { data, error } = await supabase.from('projects').insert([project as any]).select().single();
+  if (error) throw error;
+  return data;
+};
+const updateProject = async (id: string, updates: Record<string, unknown>) => {
+  const { data, error } = await supabase.from('projects').update(updates as any).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+};
+const deleteProject = async (id: string) => {
+  const { error } = await supabase.from('projects').delete().eq('id', id);
+  if (error) throw error;
+};
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -123,6 +139,7 @@ export const AdminPanel = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: projects = [], isLoading } = useProjects();
+  const { data: currentProfile } = useCurrentProfile();
 
   // Filters
   const [search, setSearch] = useState('');
@@ -230,7 +247,7 @@ export const AdminPanel = () => {
       title: project.title || '',
       description: project.description || '',
       category: project.category || '',
-      status: project.status,
+      status: (project.status as FormState['status']) || 'Planned',
       budget: String(project.budget || ''),
       progress: String(project.progress || 0),
       department: project.department || '',
@@ -269,10 +286,15 @@ export const AdminPanel = () => {
       };
 
       if (isEditMode && editingId) {
-        await updateProject(editingId, payload as any);
+        await updateProject(editingId, payload);
         toast.success('Proje güncellendi!');
       } else {
-        await addProject({ ...payload, created_at: new Date().toISOString() } as any);
+        if (!currentProfile?.organization_id) {
+          toast.error('Hesabınız henüz bir kuruluşa bağlı değil. Proje eklenemez.');
+          setIsSubmitting(false);
+          return;
+        }
+        await addProject({ ...payload, organization_id: currentProfile.organization_id, created_at: new Date().toISOString() });
         toast.success('Proje oluşturuldu!');
       }
       queryClient.invalidateQueries({ queryKey: ['projects'] });

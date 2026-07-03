@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Project } from '@/lib/externalDb';
+import type { Project } from '@/hooks/useProjects';
 import { ProjectListItem } from './ProjectListItem';
 
 type StatusChip = '' | 'In Progress' | 'Completed' | 'Planned';

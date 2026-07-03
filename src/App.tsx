@@ -48,18 +48,18 @@ const App = () => (
                 <Routes>
                   <Route path="/uygulama" element={<Uygulama />} />
                   <Route path="/profiles" element={<ProfileSelection />} />
-                  <Route path="/mayor" element={<MayorDashboard />} />
-                  <Route path="/harita" element={<MapPage />} />
-                  <Route path="/projeler" element={<ProjectsPage />} />
-                  <Route path="/kategoriler" element={<ProjectsPage />} />
-                  <Route path="/haberler" element={<HaberlerPage />} />
-                  <Route path="/ihaleler" element={<IhalelerPage />} />
-                  <Route path="/vatandas-hizmetleri" element={<HizmetlerPage />} />
-                  <Route path="/profil" element={<ProfilPage />} />
+                  <Route path="/mayor" element={<ProtectedRoute><MayorDashboard /></ProtectedRoute>} />
+                  <Route path="/harita" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
+                  <Route path="/projeler" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+                  <Route path="/kategoriler" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+                  <Route path="/haberler" element={<ProtectedRoute><HaberlerPage /></ProtectedRoute>} />
+                  <Route path="/ihaleler" element={<ProtectedRoute><IhalelerPage /></ProtectedRoute>} />
+                  <Route path="/vatandas-hizmetleri" element={<ProtectedRoute><HizmetlerPage /></ProtectedRoute>} />
+                  <Route path="/profil" element={<ProtectedRoute><ProfilPage /></ProtectedRoute>} />
                   <Route path="/admin/login" element={<AdminLogin />} />
                   <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                   <Route path="/admin/project/:id" element={<ProtectedRoute><AdminProjectDetail /></ProtectedRoute>} />
-                  <Route path="/project/:id" element={<ProjectDetail />} />
+                  <Route path="/project/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>

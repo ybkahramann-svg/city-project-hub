@@ -2,7 +2,14 @@ import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { useQueryClient } from '@tanstack/react-query';
-import { updateProject, Project } from '@/lib/externalDb';
+import type { Project } from '@/hooks/useProjects';
+import { supabase } from '@/integrations/supabase/client';
+
+const updateProject = async (id: string, updates: Partial<Project>) => {
+  const { data, error } = await supabase.from('projects').update(updates).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+};
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -83,7 +90,7 @@ const AdminProjectDetail = () => {
       title: project.title || '',
       description: project.description || '',
       category: project.category || '',
-      status: project.status,
+      status: (project.status as 'In Progress' | 'Completed' | 'Planned') || 'Planned',
       budget: String(project.budget || ''),
       progress: String(project.progress || 0),
       department: project.department || '',

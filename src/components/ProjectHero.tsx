@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Project } from '@/lib/externalDb';
+import type { Project } from '@/hooks/useProjects';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { MapPin } from 'lucide-react';

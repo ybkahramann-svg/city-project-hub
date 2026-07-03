@@ -1,5 +1,5 @@
 import { HardHat, CheckCircle, TrendingUp } from 'lucide-react';
-import { Project } from '@/lib/externalDb';
+import type { Project } from '@/hooks/useProjects';
 
 interface ExecutiveSummaryProps {
   projects: Project[];
