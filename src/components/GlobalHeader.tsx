@@ -53,11 +53,6 @@ export const GlobalHeader = () => {
               className={`gap-1.5 text-muted-foreground hover:text-foreground ${location.pathname === '/hizmetler' ? 'text-accent' : ''}`}>
               <HeartHandshake className="w-4 h-4" /> Hizmetler
             </Button>
-            <div className="w-px h-5 bg-border/60 mx-1" />
-            <Button variant="ghost" size="sm" onClick={() => navigate('/admin')}
-              className="text-muted-foreground hover:text-foreground">
-              Admin
-            </Button>
           </div>
 
           {/* Notification bell (always visible) */}

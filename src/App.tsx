@@ -14,6 +14,8 @@ import HizmetlerPage from "./pages/HizmetlerPage";
 import ProfilPage from "./pages/ProfilPage";
 import AdminPanel from "./pages/AdminPanel";
 import AdminProjectDetail from "./pages/AdminProjectDetail";
+import AdminLogin from "./pages/AdminLogin";
+import ProtectedRoute from "./components/ProtectedRoute";
 import ProjectDetail from "./pages/ProjectDetail";
 import IhalelerPage from "./pages/IhalelerPage";
 import NotFound from "./pages/NotFound";
@@ -39,8 +41,9 @@ const App = () => (
             <Route path="/ihaleler" element={<IhalelerPage />} />
             <Route path="/hizmetler" element={<HizmetlerPage />} />
             <Route path="/profil" element={<ProfilPage />} />
-            <Route path="/admin" element={<AdminPanel />} />
-            <Route path="/admin/project/:id" element={<AdminProjectDetail />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+            <Route path="/admin/project/:id" element={<ProtectedRoute><AdminProjectDetail /></ProtectedRoute>} />
             <Route path="/project/:id" element={<ProjectDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

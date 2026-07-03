@@ -9,7 +9,7 @@ export const ProfileSelection = () => {
 
   const selectRole = (role: string) => {
     localStorage.setItem('userRole', role);
-    navigate(role === 'mayor' ? '/mayor' : '/admin');
+    navigate(role === 'mayor' ? '/mayor' : '/admin/login');
   };
 
   return (
