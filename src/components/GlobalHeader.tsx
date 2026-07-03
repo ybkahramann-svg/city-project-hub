@@ -3,10 +3,13 @@ import { Landmark, ArrowLeft, Map, Newspaper, HeartHandshake, Bell, User } from 
 import { Button } from '@/components/ui/button';
 
 const SUB_PAGES = ['/admin/project/', '/project/'];
+const MARKETING_ROUTES = ['/', '/biz-kimiz', '/hizmetler', '/iletisim'];
 
 export const GlobalHeader = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  if (MARKETING_ROUTES.includes(location.pathname)) return null;
 
   const isSubPage = SUB_PAGES.some((p) => location.pathname.startsWith(p));
 
@@ -49,8 +52,8 @@ export const GlobalHeader = () => {
               className={`gap-1.5 text-muted-foreground hover:text-foreground ${location.pathname === '/haberler' ? 'text-accent' : ''}`}>
               <Newspaper className="w-4 h-4" /> Haberler
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/hizmetler')}
-              className={`gap-1.5 text-muted-foreground hover:text-foreground ${location.pathname === '/hizmetler' ? 'text-accent' : ''}`}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/vatandas-hizmetleri')}
+              className={`gap-1.5 text-muted-foreground hover:text-foreground ${location.pathname === '/vatandas-hizmetleri' ? 'text-accent' : ''}`}>
               <HeartHandshake className="w-4 h-4" /> Hizmetler
             </Button>
           </div>
