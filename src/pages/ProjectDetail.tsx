@@ -422,8 +422,8 @@ const ProjectDetail = () => {
                 </p>
 
                 {/* Umbrella Project: Status Summary + Sub-Locations */}
-                {project.is_umbrella && project.sub_locations && project.sub_locations.length > 0 && (() => {
-                  const subs = project.sub_locations as { name: string; status: string; lat: number; lng: number }[];
+                {project.is_umbrella && Array.isArray(project.sub_locations) && (project.sub_locations as any[]).length > 0 && (() => {
+                  const subs = project.sub_locations as unknown as { name: string; status: string; lat: number; lng: number }[];
                   const completed = subs.filter(s => s.status === 'Completed').length;
                   const inProgress = subs.filter(s => s.status === 'In Progress').length;
                   const planned = subs.filter(s => s.status === 'Planned').length;
@@ -508,7 +508,7 @@ const ProjectDetail = () => {
             {activeTab === 'gallery' && (() => {
               const allImages: string[] = [
                 ...galleryImages.map(g => g.image_url),
-                ...(project.gallery_images || []),
+                ...(((project as any).gallery_images as string[] | null | undefined) || []),
               ];
               if (allImages.length === 0) return (
                 <div className="text-center py-16 text-muted-foreground space-y-3">

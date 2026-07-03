@@ -90,7 +90,7 @@ const AdminProjectDetail = () => {
       title: project.title || '',
       description: project.description || '',
       category: project.category || '',
-      status: project.status,
+      status: (project.status as 'In Progress' | 'Completed' | 'Planned') || 'Planned',
       budget: String(project.budget || ''),
       progress: String(project.progress || 0),
       department: project.department || '',
