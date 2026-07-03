@@ -59,8 +59,24 @@ import {
   CalendarClock,
   UploadCloud,
 } from 'lucide-react';
-import { addProject, updateProject, deleteProject, Project } from '@/lib/externalDb';
-import { useProjects } from '@/hooks/useProjects';
+import { useProjects, type Project } from '@/hooks/useProjects';
+import { useCurrentProfile } from '@/hooks/useCurrentProfile';
+import { supabase } from '@/integrations/supabase/client';
+
+const addProject = async (project: Record<string, unknown>) => {
+  const { data, error } = await supabase.from('projects').insert([project as any]).select().single();
+  if (error) throw error;
+  return data;
+};
+const updateProject = async (id: string, updates: Record<string, unknown>) => {
+  const { data, error } = await supabase.from('projects').update(updates as any).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+};
+const deleteProject = async (id: string) => {
+  const { error } = await supabase.from('projects').delete().eq('id', id);
+  if (error) throw error;
+};
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
