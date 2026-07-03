@@ -139,6 +139,7 @@ export const AdminPanel = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: projects = [], isLoading } = useProjects();
+  const { data: currentProfile } = useCurrentProfile();
 
   // Filters
   const [search, setSearch] = useState('');
@@ -285,10 +286,15 @@ export const AdminPanel = () => {
       };
 
       if (isEditMode && editingId) {
-        await updateProject(editingId, payload as any);
+        await updateProject(editingId, payload);
         toast.success('Proje güncellendi!');
       } else {
-        await addProject({ ...payload, created_at: new Date().toISOString() } as any);
+        if (!currentProfile?.organization_id) {
+          toast.error('Hesabınız henüz bir kuruluşa bağlı değil. Proje eklenemez.');
+          setIsSubmitting(false);
+          return;
+        }
+        await addProject({ ...payload, organization_id: currentProfile.organization_id, created_at: new Date().toISOString() });
         toast.success('Proje oluşturuldu!');
       }
       queryClient.invalidateQueries({ queryKey: ['projects'] });
