@@ -5,7 +5,7 @@ const NAV_ITEMS = [
   { icon: Map, label: 'Harita', path: '/harita' },
   { icon: Newspaper, label: 'Haberler', path: '/haberler' },
   { icon: FolderOpen, label: 'Projeler', path: '/projeler' },
-  { icon: HeartHandshake, label: 'Hizmetler', path: '/hizmetler' },
+  { icon: HeartHandshake, label: 'Hizmetler', path: '/vatandas-hizmetleri' },
   { icon: User, label: 'Profilim', path: '/profil' },
 ];
 

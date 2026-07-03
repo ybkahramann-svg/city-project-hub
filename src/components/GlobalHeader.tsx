@@ -3,10 +3,13 @@ import { Landmark, ArrowLeft, Map, Newspaper, HeartHandshake, Bell, User } from 
 import { Button } from '@/components/ui/button';
 
 const SUB_PAGES = ['/admin/project/', '/project/'];
+const MARKETING_ROUTES = ['/', '/biz-kimiz', '/hizmetler', '/iletisim'];
 
 export const GlobalHeader = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  if (MARKETING_ROUTES.includes(location.pathname)) return null;
 
   const isSubPage = SUB_PAGES.some((p) => location.pathname.startsWith(p));
 
