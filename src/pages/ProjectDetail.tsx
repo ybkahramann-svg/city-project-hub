@@ -608,8 +608,9 @@ const DetailMap = ({ project }: { project: any }) => {
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    const isUmbrella = project.is_umbrella && project.sub_locations && project.sub_locations.length > 0;
-    const subs: { name: string; status: string; lat: number; lng: number }[] = isUmbrella ? project.sub_locations : [];
+    const subLocs = (Array.isArray(project.sub_locations) ? project.sub_locations : []) as unknown as { name: string; status: string; lat: number; lng: number }[];
+    const isUmbrella = project.is_umbrella && subLocs.length > 0;
+    const subs: { name: string; status: string; lat: number; lng: number }[] = isUmbrella ? subLocs : [];
 
     const map = L.map(mapContainerRef.current, {
       preferCanvas: true,
