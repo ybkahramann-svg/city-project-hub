@@ -52,8 +52,8 @@ export const GlobalHeader = () => {
               className={`gap-1.5 text-muted-foreground hover:text-foreground ${location.pathname === '/haberler' ? 'text-accent' : ''}`}>
               <Newspaper className="w-4 h-4" /> Haberler
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/hizmetler')}
-              className={`gap-1.5 text-muted-foreground hover:text-foreground ${location.pathname === '/hizmetler' ? 'text-accent' : ''}`}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/vatandas-hizmetleri')}
+              className={`gap-1.5 text-muted-foreground hover:text-foreground ${location.pathname === '/vatandas-hizmetleri' ? 'text-accent' : ''}`}>
               <HeartHandshake className="w-4 h-4" /> Hizmetler
             </Button>
           </div>
