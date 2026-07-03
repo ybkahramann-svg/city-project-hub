@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Project } from '@/lib/externalDb';
+import type { Project } from '@/hooks/useProjects';
 import { supabase } from '@/integrations/supabase/client';
 
 interface CommandCenterMapProps {

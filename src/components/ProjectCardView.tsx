@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Project } from '@/lib/externalDb';
+import type { Project } from '@/hooks/useProjects';
 
 const statusConfig = {
   'In Progress': { label: 'Devam Ediyor', className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20' },

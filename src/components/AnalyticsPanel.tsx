@@ -1,5 +1,5 @@
 import { BarChart3, TrendingUp, HardHat, CheckCircle, FolderKanban } from 'lucide-react';
-import { Project } from '@/lib/externalDb';
+import type { Project } from '@/hooks/useProjects';
 
 interface AnalyticsPanelProps {
   projects: Project[];

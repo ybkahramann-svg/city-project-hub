@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Project } from '@/lib/externalDb';
+import type { Project } from '@/hooks/useProjects';
 import { ProjectCard } from './ProjectCard';
 import { Button } from '@/components/ui/button';
 

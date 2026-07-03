@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Project } from '@/lib/externalDb';
+import type { Project } from '@/hooks/useProjects';
 
 const TURKISH_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 

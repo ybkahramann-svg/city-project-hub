@@ -4,7 +4,7 @@ import { DashboardFilters, SortOption } from '@/components/DashboardFilters';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { ProjectListItem } from '@/components/ProjectListItem';
 import { ProjectCardView } from '@/components/ProjectCardView';
-import { Project } from '@/lib/externalDb';
+import type { Project } from '@/hooks/useProjects';
 import { LayoutGrid, List } from 'lucide-react';
 
 type ViewMode = 'list' | 'cards';
