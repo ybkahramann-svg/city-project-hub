@@ -3,7 +3,7 @@ import { Landmark, ArrowLeft, Map, Newspaper, HeartHandshake, Bell, User } from 
 import { Button } from '@/components/ui/button';
 
 const SUB_PAGES = ['/admin/project/', '/project/'];
-const MARKETING_ROUTES = ['/', '/biz-kimiz', '/hizmetler', '/iletisim'];
+const MARKETING_ROUTES = ['/', '/biz-kimiz', '/hizmetler', '/iletisim', '/connect'];
 
 export const GlobalHeader = () => {
   const location = useLocation();
