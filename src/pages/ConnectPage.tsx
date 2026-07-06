@@ -55,56 +55,63 @@ export default function ConnectPage() {
           </p>
         </Card>
 
-        <div className="grid md:grid-cols-2 gap-5">
-          <Card className="p-6 space-y-4 bg-card/60 border-border/60">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-accent" />
-              <h2 className="text-lg font-semibold">ChatGPT</h2>
-            </div>
-            <ol className="space-y-3 text-sm text-muted-foreground list-decimal list-inside">
-              <li>
-                <a
-                  className="text-accent underline underline-offset-2"
-                  href="https://chatgpt.com/#settings/Connectors/Advanced"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Ayarlar → Bağlayıcılar → Gelişmiş
-                </a>{" "}
-                sayfasını açın ve Geliştirici modunu etkinleştirin (uyarıyı okuyun).
-              </li>
-              <li>Sohbet ekranındaki "+" menüsünden Geliştirici modunu açın.</li>
-              <li>"Kaynak ekle" &gt; "Daha fazla bağla" seçeneğine tıklayın.</li>
-              <li>Bir ad verin ve yukarıdaki MCP adresini yapıştırın.</li>
-              <li>ChatGPT'den bu uygulamayı kullanmasını isteyin.</li>
-            </ol>
-          </Card>
+        <Tabs defaultValue="claude" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-sm mx-auto">
+            <TabsTrigger value="claude">
+              <Bot className="w-4 h-4 mr-2" /> Claude
+            </TabsTrigger>
+            <TabsTrigger value="chatgpt">
+              <Sparkles className="w-4 h-4 mr-2" /> ChatGPT
+            </TabsTrigger>
+          </TabsList>
 
-          <Card className="p-6 space-y-4 bg-card/60 border-border/60">
-            <div className="flex items-center gap-2">
-              <Bot className="w-5 h-5 text-accent" />
-              <h2 className="text-lg font-semibold">Claude</h2>
-            </div>
-            <ol className="space-y-3 text-sm text-muted-foreground list-decimal list-inside">
-              <li>
-                <a
-                  className="text-accent underline underline-offset-2"
-                  href="https://claude.ai/customize/connectors?modal=add-custom-connector"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Özel bağlayıcı ekleme
-                </a>{" "}
-                sayfasını açın.
-              </li>
-              <li>Bir ad verin ve yukarıdaki MCP adresini yapıştırın.</li>
-              <li>
-                Sohbet ekranında bağlayıcıyı etkinleştirin, ardından Claude'dan
-                bu uygulamayı kullanmasını isteyin.
-              </li>
-            </ol>
-          </Card>
-        </div>
+          <TabsContent value="claude">
+            <Card className="p-6 space-y-4 bg-card/60 border-border/60">
+              <h2 className="text-lg font-semibold">Claude Bağlantı Adımları</h2>
+              <ol className="space-y-3 text-sm text-muted-foreground list-decimal list-inside">
+                <li>
+                  <a
+                    className="text-accent underline underline-offset-2"
+                    href="https://claude.ai/customize/connectors?modal=add-custom-connector"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Özel bağlayıcı ekleme
+                  </a>{" "}
+                  sayfasını açın.
+                </li>
+                <li>Bir ad verin ve yukarıdaki MCP adresini yapıştırın.</li>
+                <li>
+                  Sohbet ekranında bağlayıcıyı etkinleştirin, ardından Claude'dan
+                  bu uygulamayı kullanmasını isteyin.
+                </li>
+              </ol>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="chatgpt">
+            <Card className="p-6 space-y-4 bg-card/60 border-border/60">
+              <h2 className="text-lg font-semibold">ChatGPT Bağlantı Adımları</h2>
+              <ol className="space-y-3 text-sm text-muted-foreground list-decimal list-inside">
+                <li>
+                  <a
+                    className="text-accent underline underline-offset-2"
+                    href="https://chatgpt.com/#settings/Connectors/Advanced"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Ayarlar → Bağlayıcılar → Gelişmiş
+                  </a>{" "}
+                  sayfasını açın ve Geliştirici modunu etkinleştirin (uyarıyı okuyun).
+                </li>
+                <li>Sohbet ekranındaki "+" menüsünden Geliştirici modunu açın.</li>
+                <li>"Kaynak ekle" &gt; "Daha fazla bağla" seçeneğine tıklayın.</li>
+                <li>Bir ad verin ve yukarıdaki MCP adresini yapıştırın.</li>
+                <li>ChatGPT'den bu uygulamayı kullanmasını isteyin.</li>
+              </ol>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <p className="text-xs text-muted-foreground">
           Bağlanan asistan; projelerinizi listeleyebilir, proje ayrıntılarını
