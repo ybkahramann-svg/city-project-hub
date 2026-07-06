@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MarketingLayout } from "@/components/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, Copy, Bot, Sparkles } from "lucide-react";
 
 const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "";
