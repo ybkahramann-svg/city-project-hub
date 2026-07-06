@@ -9,6 +9,7 @@ import MarketingHome from "./pages/marketing/HomePage";
 import BizKimizPage from "./pages/marketing/BizKimizPage";
 import HizmetlerMarketingPage from "./pages/marketing/HizmetlerPage";
 import IletisimPage from "./pages/marketing/IletisimPage";
+import ConnectPage from "./pages/ConnectPage";
 import ProfileSelection from "./pages/ProfileSelection";
 import MayorDashboard from "./pages/MayorDashboard";
 import MapPage from "./pages/MapPage";
