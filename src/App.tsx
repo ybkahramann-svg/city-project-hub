@@ -41,6 +41,7 @@ const App = () => (
           <Route path="/biz-kimiz" element={<BizKimizPage />} />
           <Route path="/hizmetler" element={<HizmetlerMarketingPage />} />
           <Route path="/iletisim" element={<IletisimPage />} />
+          <Route path="/connect" element={<ConnectPage />} />
 
           {/* Application (uses GlobalHeader with pt-14) */}
           <Route
