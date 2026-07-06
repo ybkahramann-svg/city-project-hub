@@ -9,6 +9,7 @@ import MarketingHome from "./pages/marketing/HomePage";
 import BizKimizPage from "./pages/marketing/BizKimizPage";
 import HizmetlerMarketingPage from "./pages/marketing/HizmetlerPage";
 import IletisimPage from "./pages/marketing/IletisimPage";
+import ConnectPage from "./pages/ConnectPage";
 import ProfileSelection from "./pages/ProfileSelection";
 import MayorDashboard from "./pages/MayorDashboard";
 import MapPage from "./pages/MapPage";
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/biz-kimiz" element={<BizKimizPage />} />
           <Route path="/hizmetler" element={<HizmetlerMarketingPage />} />
           <Route path="/iletisim" element={<IletisimPage />} />
+          <Route path="/connect" element={<ConnectPage />} />
 
           {/* Application (uses GlobalHeader with pt-14) */}
           <Route
