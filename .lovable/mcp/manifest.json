@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://fzxtrslbtgfgzyibcowi.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "kepez-projeler-mcp",
+      "version": "0.1.0",
+      "title": "Kepez Proje Takip MCP"
+    },
+    "tools": [
+      {
+        "name": "list_projects",
+        "title": "Projeleri Listele",
+        "description": "Kullanıcının kuruluşundaki projeleri listeler. Durum, kategori, ilçe veya mahalleye göre filtrelenebilir.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "description": "Proje durumu (ör. 'In Progress', 'Completed', 'Planned')."
+            },
+            "category": {
+              "type": "string",
+              "description": "Proje kategorisi."
+            },
+            "district": {
+              "type": "string",
+              "description": "İlçe adı."
+            },
+            "neighborhood": {
+              "type": "string",
+              "description": "Mahalle adı."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "description": "Maksimum kayıt sayısı (varsayılan 50)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_project",
+        "title": "Proje Detayı",
+        "description": "Bir projenin tüm alanlarını, notlarını ve galerisini döner.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "project_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Proje UUID'si."
+            }
+          },
+          "required": [
+            "project_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "add_project_note",
+        "title": "Proje Notu Ekle",
+        "description": "Bir projeye Başkan Kararları / direktif notu ekler.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "project_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Not eklenecek projenin UUID'si."
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Not metni."
+            },
+            "author": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Not sahibi (varsayılan: kullanıcı e-postası)."
+            }
+          },
+          "required": [
+            "project_id",
+            "text"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

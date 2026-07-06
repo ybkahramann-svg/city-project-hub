@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Landmark } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
+function safeNext(next: string | null): string {
+  if (!next) return '/admin';
+  if (!next.startsWith('/') || next.startsWith('//')) return '/admin';
+  return next;
+}
+
 export const AdminLogin = () => {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = safeNext(params.get('next'));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,7 +38,7 @@ export const AdminLogin = () => {
       return;
     }
 
-    navigate('/admin');
+    navigate(next);
   };
 
   return (

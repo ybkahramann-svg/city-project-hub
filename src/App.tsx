@@ -22,6 +22,7 @@ import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProjectDetail from "./pages/ProjectDetail";
 import IhalelerPage from "./pages/IhalelerPage";
+import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,7 +61,9 @@ const App = () => (
                   <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
                   <Route path="/admin/project/:id" element={<ProtectedRoute><AdminProjectDetail /></ProtectedRoute>} />
                   <Route path="/project/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
+                  <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                   <Route path="*" element={<NotFound />} />
+
                 </Routes>
               </div>
             }
