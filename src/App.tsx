@@ -22,6 +22,7 @@ import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProjectDetail from "./pages/ProjectDetail";
 import IhalelerPage from "./pages/IhalelerPage";
+import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
