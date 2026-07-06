@@ -13,6 +13,7 @@ export const MarketingLayout = ({ children }: { children: React.ReactNode }) => 
             <Link to="/biz-kimiz" className="hover:text-foreground">Biz Kimiz</Link>
             <Link to="/hizmetler" className="hover:text-foreground">Hizmetler</Link>
             <Link to="/iletisim" className="hover:text-foreground">İletişim</Link>
+            <Link to="/connect" className="hover:text-foreground">Yapay Zeka Bağlantısı</Link>
           </div>
         </div>
       </footer>
